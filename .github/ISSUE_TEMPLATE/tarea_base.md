@@ -1,3 +1,11 @@
+---
+name: Nueva Tarea de Desarrollo
+about: Plantilla para asignar tareas al equipo de Frontend o Backend
+title: '[TAREA] - '
+labels: ''
+assignees: ''
+---
+
 ## 🎯 Objetivo de la Tarea
 [Describe detalladamente qué funcionalidad se debe construir. Ej: "Crear el diseño visual de la pantalla de Login y sus botones."]
 
