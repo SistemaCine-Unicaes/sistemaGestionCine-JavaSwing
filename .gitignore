@@ -1,0 +1,61 @@
+# Archivos compilados de Java
+*.class
+
+# Archivos de empaquetado
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs y reportes de error de la Máquina Virtual de Java
+*.log
+hs_err_pid*
+
+# =========================
+# Ignorar archivos de IDEs
+# =========================
+
+# NetBeans (Muy común para Java Swing)
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+build/
+.nb-gradle/
+
+# Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+# No ignoramos .project ni .classpath para que el equipo pueda importar el proyecto fácilmente
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Visual Studio Code
+.vscode/
+
+# =========================
+# Archivos del Sistema Operativo
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
