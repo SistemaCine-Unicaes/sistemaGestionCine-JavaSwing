@@ -8,7 +8,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
-        <exec.mainClass>com.mycompany.sistemagestioncine.SistemaGestionCine</exec.mainClass>
+        <exec.mainClass>com.mycompany.sistemagestioncine.SistemaGestionCine</exec.mainClass>   
     </properties>
     
     <dependencies>
@@ -18,4 +18,7 @@
             <version>42.7.13</version>
         </dependency>
     </dependencies>
+
+    
 </project>
+
