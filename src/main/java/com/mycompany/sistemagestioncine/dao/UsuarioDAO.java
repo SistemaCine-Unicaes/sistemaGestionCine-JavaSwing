@@ -2,10 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package dao;
+package com.mycompany.sistemagestioncine.dao;
 
-import config.ConexionDB;
-import models.Usuario;
+import com.mycompany.sistemagestioncine.config.Conexion;
+import com.mycompany.sistemagestioncine.models.Usuario;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -33,7 +33,7 @@ public class UsuarioDAO {
         // PASO 1: Buscar al usuario por su username para obtener su correo
         String sql = "SELECT * FROM Usuario WHERE username = ? AND estado = 'Activo'";        
         
-        try (Connection conn = ConexionDB.conectar();
+        try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setString(1, username);
@@ -118,7 +118,7 @@ public class UsuarioDAO {
         String sql = "INSERT INTO Usuario (rol, nombre, username, password_hash, dui, email, telefono, fecha_nacimiento, genero, direccion, fecha_contratacion, imagen_url, estado) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::estado_usuario)";
                         
-        try (Connection conn = ConexionDB.conectar();
+        try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setString(1, usuario.getRol());

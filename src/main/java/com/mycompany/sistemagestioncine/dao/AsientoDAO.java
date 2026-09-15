@@ -2,10 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package dao;
+package com.mycompany.sistemagestioncine.dao;
 
-import config.ConexionDB;
-import models.Asiento;
+import com.mycompany.sistemagestioncine.config.Conexion;
+import com.mycompany.sistemagestioncine.models.Asiento;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,7 +36,7 @@ public class AsientoDAO {
             }
         }
 
-        try (Connection conn = ConexionDB.conectar();
+        try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
              
             int paramIndex = 1;
@@ -64,7 +64,7 @@ public class AsientoDAO {
         // Ordenamiento para que se listen secuencialmente (A-1, A-2... B-1)
         String sql = "SELECT * FROM Asiento WHERE id_sala = ? ORDER BY fila, numero";
         
-        try (Connection conn = ConexionDB.conectar();
+        try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
              
             ps.setInt(1, idSala);

@@ -17,13 +17,6 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.13</version>
         </dependency>
-<<<<<<< Updated upstream
-    </dependencies>
-
-    
-</project>
-
-=======
         <dependency>
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
@@ -31,4 +24,3 @@
         </dependency>
     </dependencies>    
 </project>
->>>>>>> Stashed changes

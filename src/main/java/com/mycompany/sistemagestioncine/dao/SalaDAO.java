@@ -2,10 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package dao;
+package com.mycompany.sistemagestioncine.dao;
 
-import config.ConexionDB;
-import models.Sala;
+import com.mycompany.sistemagestioncine.config.Conexion;
+import com.mycompany.sistemagestioncine.models.Sala;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,7 +26,7 @@ public class SalaDAO {
                      "VALUES (?, ?, ?, ?, ?::estado_sala)";
                      
         try {            
-            Connection conn = ConexionDB.conectar();
+            Connection conn = Conexion.getConexion();
             PreparedStatement ps = conn.prepareStatement(sql);
              
             ps.setInt(1, sala.getCapacidadTotal());
@@ -50,7 +50,7 @@ public class SalaDAO {
         String sql = "SELECT * FROM Sala ORDER BY id_sala";
         
         try {
-            Connection conn = ConexionDB.conectar();
+            Connection conn = Conexion.getConexion();
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
              
@@ -78,7 +78,7 @@ public class SalaDAO {
         String sql = "UPDATE Sala SET capacidad_total = ?, asientos_especiales = ?, tiempo_de_limpieza = ?, asientos_por_fila = ?, estado = ?::estado_sala WHERE id_sala = ?";
                      
         try {
-            Connection conn = ConexionDB.conectar();
+            Connection conn = Conexion.getConexion();
             PreparedStatement ps = conn.prepareStatement(sql);
              
             ps.setInt(1, sala.getCapacidadTotal());
@@ -102,7 +102,7 @@ public class SalaDAO {
         String sql = "DELETE FROM Sala WHERE id_sala = ?";
         
         try {
-            Connection conn = ConexionDB.conectar();
+            Connection conn = Conexion.getConexion();
             PreparedStatement ps = conn.prepareStatement(sql); 
             
             ps.setInt(1, idSala);
@@ -122,7 +122,7 @@ public class SalaDAO {
         String sql = "SELECT * FROM Sala WHERE id_sala = ?";
         
         try {
-            Connection conn = ConexionDB.conectar();
+            Connection conn = Conexion.getConexion();
             PreparedStatement ps = conn.prepareStatement(sql);
             
             ps.setInt(1, idSala);
@@ -157,9 +157,9 @@ public class SalaDAO {
         boolean exito = dao.registrarSala(nuevaSala);
         
         if (exito) {
-            System.out.println("✅ Sala registrada correctamente en Supabase.");
+            System.out.println("Sala registrada correctamente en Supabase.");
         } else {
-            System.out.println("🚫 Falló el registro de la sala.");
+            System.out.println("Falló el registro de la sala.");
         }
         
         // 2. Probar el listado de salas
@@ -179,9 +179,9 @@ public class SalaDAO {
             Sala salaEncontrada = dao.obtenerSalaPorId(idBusqueda);
             
             if (salaEncontrada != null) {
-                System.out.println("✅ Sala encontrada: " + salaEncontrada.toString());
+                System.out.println("Sala encontrada: " + salaEncontrada.toString());
             } else {
-                System.out.println("🚫 No se encontró ninguna sala con el ID " + idBusqueda);
+                System.out.println("No se encontró ninguna sala con el ID " + idBusqueda);
             }
         }
     }
