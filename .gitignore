@@ -60,3 +60,6 @@ out/
 ehthumbs.db
 Thumbs.db
 /target/
+
+# Credenciales locales de la aplicación
+/cine.local.properties
