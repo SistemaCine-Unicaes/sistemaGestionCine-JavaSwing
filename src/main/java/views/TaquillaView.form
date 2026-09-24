@@ -892,6 +892,9 @@
                                   <Dimension value="[200, 48]"/>
                                 </Property>
                               </Properties>
+                              <Events>
+                                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnContinuarActionPerformed"/>
+                              </Events>
                               <AuxValues>
                                 <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="views.estilos.Tema.botonPrimario(&quot;&quot;)"/>
                               </AuxValues>
