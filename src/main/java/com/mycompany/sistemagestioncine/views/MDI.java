@@ -37,6 +37,7 @@ public class MDI extends javax.swing.JFrame {
         btnMenuSalas = new javax.swing.JButton();
         btnVenderTickets = new javax.swing.JButton();
         btnCerrarSesion = new javax.swing.JButton();
+        btnMenuCartelera = new javax.swing.JButton();
         panelCentral = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -53,6 +54,9 @@ public class MDI extends javax.swing.JFrame {
         btnCerrarSesion.setText("Cerrar Sesión");
         btnCerrarSesion.addActionListener(this::btnCerrarSesionActionPerformed);
 
+        btnMenuCartelera.setText("Cartelera");
+        btnMenuCartelera.addActionListener(this::btnMenuCarteleraActionPerformed);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -66,7 +70,8 @@ public class MDI extends javax.swing.JFrame {
                         .addGap(8, 8, 8)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(btnMenuPeliculas)
-                            .addComponent(btnMenuSalas))))
+                            .addComponent(btnMenuSalas)
+                            .addComponent(btnMenuCartelera))))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -74,13 +79,15 @@ public class MDI extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(113, 113, 113)
                 .addComponent(btnMenuPeliculas)
-                .addGap(60, 60, 60)
+                .addGap(78, 78, 78)
+                .addComponent(btnMenuCartelera)
+                .addGap(95, 95, 95)
                 .addComponent(btnMenuSalas)
                 .addGap(60, 60, 60)
                 .addComponent(btnVenderTickets)
                 .addGap(60, 60, 60)
                 .addComponent(btnCerrarSesion)
-                .addContainerGap(140, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.LINE_START);
@@ -93,7 +100,7 @@ public class MDI extends javax.swing.JFrame {
         );
         panelCentralLayout.setVerticalGroup(
             panelCentralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 525, Short.MAX_VALUE)
+            .addGap(0, 532, Short.MAX_VALUE)
         );
 
         getContentPane().add(panelCentral, java.awt.BorderLayout.CENTER);
@@ -136,6 +143,11 @@ public class MDI extends javax.swing.JFrame {
             javax.swing.JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_btnVenderTicketsActionPerformed
 
+    private void btnMenuCarteleraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuCarteleraActionPerformed
+        CarteleraVieww carteleraSalass = new CarteleraVieww();
+        mostrarVistaCentral(carteleraSalass);
+    }//GEN-LAST:event_btnMenuCarteleraActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -163,10 +175,17 @@ public class MDI extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCerrarSesion;
+    private javax.swing.JButton btnMenuCartelera;
     private javax.swing.JButton btnMenuPeliculas;
     private javax.swing.JButton btnMenuSalas;
     private javax.swing.JButton btnVenderTickets;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel panelCentral;
     // End of variables declaration//GEN-END:variables
+
+    private void mostrarVistaCentral() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+    
+    
 }

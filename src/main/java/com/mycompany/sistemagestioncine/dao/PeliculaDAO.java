@@ -19,7 +19,7 @@ public class PeliculaDAO {
     public boolean insertarPelicula(Pelicula pelicula) {
         // Se aplica CAST(? AS estado_pelicula) para manejar el ENUM de PostgreSQL
         String sql = "INSERT INTO Pelicula (nombre, sinopsis, duracion, genero, director, fecha_estreno, tipo_estreno, imagen_url, estado) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS estado_pelicula))";
+             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS estado_pelicula))";
         
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setString(1, pelicula.getNombre());
@@ -80,5 +80,38 @@ public class PeliculaDAO {
         System.err.println("Error al actualizar la URL del póster: " + e.getMessage());
         return false;
     }
+    }
+    
+    
+    public boolean actualizarPelicula(Pelicula pelicula) {
+        String sql = "UPDATE Pelicula SET nombre = ?, sinopsis = ?, duracion = ?, genero = ?, director = ?, estado = CAST(? AS estado_pelicula) WHERE id_pelicula = ?";
+        
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setString(1, pelicula.getNombre());
+            ps.setString(2, pelicula.getSinopsis());
+            ps.setInt(3, pelicula.getDuracion());
+            ps.setString(4, pelicula.getGenero());
+            ps.setString(5, pelicula.getDirector());
+            ps.setString(6, pelicula.getEstado());
+            ps.setInt(7, pelicula.getIdPelicula());
+            
+            return ps.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar la película: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean eliminarPelicula(int idPelicula) {
+        String sql = "DELETE FROM Pelicula WHERE id_pelicula = ?";
+        
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, idPelicula);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar la película: " + e.getMessage());
+            return false;
+        }
     }
 }
