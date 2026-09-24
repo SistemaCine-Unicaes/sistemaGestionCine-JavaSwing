@@ -395,6 +395,11 @@ public class TaquillaView extends javax.swing.JPanel {
         btnContinuar.setText("Continuar a asientos  →");
         btnContinuar.setMaximumSize(new java.awt.Dimension(32767, 48));
         btnContinuar.setPreferredSize(new java.awt.Dimension(200, 48));
+        btnContinuar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnContinuarActionPerformed(evt);
+            }
+        });
         pnlDetalleResumen.add(btnContinuar);
 
         lblNota.setFont(new java.awt.Font("SansSerif", 0, 12)); // NOI18N
@@ -417,6 +422,10 @@ public class TaquillaView extends javax.swing.JPanel {
 
         add(scrPagina, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnContinuarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnContinuarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnContinuarActionPerformed
 
     public javax.swing.JComboBox<String> getCbPelicula() {
         return cbPelicula;
