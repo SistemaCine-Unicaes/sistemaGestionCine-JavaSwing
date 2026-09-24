@@ -3,10 +3,14 @@ package controlllers;
 import config.Conexion;
 import config.Sesion;
 import dao.ReportesDAO;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
+import java.util.Comparator;
+import java.util.List;
 import javax.swing.table.DefaultTableModel;
 import utils.Tareas;
 import views.CorteCajaView;
@@ -40,11 +44,22 @@ public class CorteCajaController {
             Sesion.exigirAdministrador();
             try (Connection c = Conexion.getConexion()) { return new ReportesDAO(c).obtenerReporte(rango[0], rango[1]); }
         }, reporte -> {
-            vista.setTicketsVendidosText("Tickets Vendidos: " + reporte.tickets());
-            vista.setTotalIngresosText("Total Ingresos: $" + reporte.total().toPlainString());
+            vista.setPeriodo("Periodo " + vista.getTipoReporte().toLowerCase() + ": del " + rango[0].format(FECHA)
+                    + " al " + rango[1].minusDays(1).format(FECHA));
+            BigDecimal total = reporte.total();
+            vista.setTicketsVendidos(String.valueOf(reporte.tickets()));
+            vista.setIngresos(dinero(total), reporte.tickets() == 0 ? "$0.00"
+                    : dinero(total.divide(BigDecimal.valueOf(reporte.tickets()), 2, RoundingMode.HALF_UP)), reporte.cajeros().size());
             DefaultTableModel tabla = (DefaultTableModel) vista.getTablaVentas().getModel();
             tabla.setRowCount(0);
-            for (var fila : reporte.cajeros()) tabla.addRow(new Object[]{fila.nombre() + " (#" + fila.idUsuario() + ")", fila.tickets(), "$" + fila.total().toPlainString()});
+            List<ReportesDAO.VentaCajero> filas = reporte.cajeros().stream()
+                    .sorted(Comparator.comparing(ReportesDAO.VentaCajero::total).reversed()).toList();
+            for (var fila : filas) tabla.addRow(new Object[]{fila.nombre() + " (#" + fila.idUsuario() + ")", fila.tickets(),
+                    dinero(fila.total()), total.signum() == 0 ? 0.0 : fila.total().doubleValue() * 100 / total.doubleValue()});
         });
+    }
+
+    private static String dinero(BigDecimal monto) {
+        return "$" + monto.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 }
