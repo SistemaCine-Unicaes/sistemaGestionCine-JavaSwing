@@ -33,6 +33,7 @@
             <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0" />
               <Group type="103" groupAlignment="0" attributes="0">
+                <Component id="btnMenuCartelera" max="32767" attributes="0" />
                 <Component id="btnMenuPeliculas" max="32767" attributes="0" />
                 <Component id="btnMenuSalas" max="32767" attributes="0" />
                 <Component id="btnMenuFunciones" max="32767" attributes="0" />
@@ -49,6 +50,8 @@
           <Group type="103" groupAlignment="0" attributes="0">
             <Group type="102" attributes="0">
               <EmptySpace min="-2" pref="36" max="-2" attributes="0" />
+              <Component id="btnMenuCartelera" min="-2" max="-2" attributes="0" />
+              <EmptySpace min="-2" pref="24" max="-2" attributes="0" />
               <Component id="btnMenuPeliculas" min="-2" max="-2" attributes="0" />
               <EmptySpace min="-2" pref="24" max="-2" attributes="0" />
               <Component id="btnMenuSalas" min="-2" max="-2" attributes="0" />
@@ -68,9 +71,17 @@
         </DimensionLayout>
       </Layout>
       <SubComponents>
+        <Component class="javax.swing.JButton" name="btnMenuCartelera">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Cartelera" />
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnMenuCarteleraActionPerformed" />
+          </Events>
+        </Component>
         <Component class="javax.swing.JButton" name="btnMenuPeliculas">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Peliculas" />
+            <Property name="text" type="java.lang.String" value="Películas" />
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnMenuPeliculasActionPerformed" />
@@ -86,7 +97,7 @@
         </Component>
         <Component class="javax.swing.JButton" name="btnVenderTickets">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Venta Tickets" />
+            <Property name="text" type="java.lang.String" value="Venta de boletos" />
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnVenderTicketsActionPerformed" />

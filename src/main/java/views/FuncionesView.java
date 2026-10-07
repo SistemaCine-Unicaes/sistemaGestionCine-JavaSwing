@@ -63,6 +63,7 @@ public class FuncionesView extends JPanel {
                         Tema.SEPARACION));
 
         campos.setOpaque(false);
+        views.estilos.Adaptable.columnas(campos, 2, 240, 16);
 
         campos.add(crearGrupo("Película", cbPelicula));
         campos.add(crearGrupo("Sala", cbSala));
@@ -74,8 +75,8 @@ public class FuncionesView extends JPanel {
                 new FlowLayout(FlowLayout.LEADING, 0, 0));
 
         acciones.setOpaque(false);
+        views.estilos.Adaptable.columnas(acciones, 2, 190, 12);
         acciones.add(btnProgramar);
-        acciones.add(Box.createHorizontalStrut(Tema.SEPARACION));
         acciones.add(btnRecargar);
 
         // Separación entre los campos y las acciones.
@@ -94,7 +95,9 @@ public class FuncionesView extends JPanel {
         contenido.add(encabezado, BorderLayout.NORTH);
         contenido.add(tarjeta, BorderLayout.CENTER);
 
-        add(contenido, BorderLayout.NORTH);
+        setBorder(BorderFactory.createEmptyBorder());
+        views.estilos.Pagina pagina = new views.estilos.Pagina();
+        pagina.add(contenido, BorderLayout.NORTH); add(pagina.conScroll(), BorderLayout.CENTER);
 
         // El controlador habilita el botón cuando hay opciones disponibles.
         habilitarProgramar(false);

@@ -24,11 +24,17 @@ public class TaquillaController {
     private List<Funcion> visibles = List.of();
     private BigDecimal precio;
     private boolean cargando;
+    private Integer funcionInicial;
     private record Catalogo(List<Pelicula> peliculas, List<Funcion> funciones, BigDecimal precio) {}
     private record Mapa(List<Asiento> asientos, Set<Integer> vendidos) {}
 
     public TaquillaController(MDI mdi, TaquillaView vista) {
+        this(mdi, vista, null);
+    }
+
+    public TaquillaController(MDI mdi, TaquillaView vista, Integer idFuncion) {
         Sesion.exigirVenta(); this.mdi = mdi; this.vista = vista;
+        this.funcionInicial = idFuncion;
         vista.habilitarContinuar(false);
         vista.addPeliculaChangeListener(e -> { if (!cargando) cargarFunciones(); });
         vista.addFuncionChangeListener(e -> { if (!cargando) Tareas.validar(vista, this::actualizarTotal); });
@@ -51,9 +57,33 @@ public class TaquillaController {
             for (Pelicula p : peliculas) vista.getCbPelicula().addItem(p.getNombre() + " (#" + p.getIdPelicula() + ")");
             cargando = false;
             cargarFunciones();
+            if (funcionInicial != null) {
+                seleccionarFuncionInicial(funcionInicial);
+                funcionInicial = null;
+            }
             if (precio == null) Tareas.error(vista, "El administrador debe guardar el precio en Administración → Configuración antes de vender.");
             else if (peliculas.isEmpty()) JOptionPane.showMessageDialog(vista, "No hay funciones futuras disponibles. El administrador puede programarlas desde Administración.");
         });
+    }
+
+    private void seleccionarFuncionInicial(int idFuncion) {
+        Funcion elegida = funciones.stream().filter(f -> f.getIdFuncion() == idFuncion).findFirst().orElse(null);
+        if (elegida == null) {
+            vista.getCbFuncion().setSelectedIndex(-1);
+            Tareas.error(vista, "La función seleccionada ya no está disponible. Elige otro horario.");
+            return;
+        }
+        for (int i = 0; i < peliculas.size(); i++) {
+            if (peliculas.get(i).getIdPelicula() == elegida.getIdPelicula()) {
+                vista.getCbPelicula().setSelectedIndex(i);
+                for (int j = 0; j < visibles.size(); j++) {
+                    if (visibles.get(j).getIdFuncion() == idFuncion) {
+                        vista.getCbFuncion().setSelectedIndex(j);
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     private void cargarFunciones() {
@@ -73,6 +103,7 @@ public class TaquillaController {
         vista.setTotalPagar(precio == null ? "$0.00" : "$" + precio.multiply(BigDecimal.valueOf(cantidad)).toPlainString());
         int indicePelicula = vista.getCbPelicula().getSelectedIndex(), indiceFuncion = vista.getCbFuncion().getSelectedIndex();
         Funcion f = indiceFuncion < 0 ? null : visibles.get(indiceFuncion);
+        vista.mostrarPoster(indicePelicula < 0 ? null : peliculas.get(indicePelicula).getImagenUrl());
         vista.mostrarResumen(indicePelicula < 0 ? null : peliculas.get(indicePelicula).getNombre(),
                 f == null ? null : f.getFechaProyeccion().toLocalDate().format(CorteCajaController.FECHA),
                 f == null ? null : hora(f), f == null ? null : "Sala " + f.getIdSala(),

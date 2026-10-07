@@ -54,6 +54,8 @@ public class VentaService {
             Set<Integer> vendidos = new HashSet<>();
             TicketDAO tickets = new TicketDAO(c);
             for (Ticket ticket : tickets.obtenerTicketsPorFuncion(idFuncion)) vendidos.add(ticket.getIdAsiento());
+            // Valida toda la compra con disponibilidad actual, dentro de los bloqueos de función y sala.
+            AsientosContiguos.validar(new dao.AsientoDAO(c).obtenerAsientosPorSala(sala.getIdSala()), vendidos, ordenados);
             List<Ticket> venta = new ArrayList<>();
             try (PreparedStatement ps = c.prepareStatement("SELECT id_sala,estado FROM Asiento WHERE id_asiento=? FOR UPDATE")) {
                 for (int id : ordenados) {
