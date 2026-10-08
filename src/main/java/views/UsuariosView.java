@@ -6,99 +6,47 @@ import java.util.List;
 import javax.swing.*;
 import views.estilos.Tema;
 
+/** Gestión de cajeros y administradores. El diseño completo está en UsuariosView.form. */
 public class UsuariosView extends javax.swing.JPanel {
     public static final String SIN_GENERO = "Sin especificar";
-    private final JLabel lblFormulario = Tema.texto("Nuevo usuario", Tema.SUBTITULO, Tema.TEXTO);
-    private final JLabel lblAyudaClave = Tema.texto("", Tema.CUERPO, Tema.SECUNDARIO);
-    private final JLabel lblMensaje = Tema.mensaje("Completa los datos para agregar un cajero o administrador.", Tema.SECUNDARIO);
-    private final JLabel lblCantidad = Tema.texto("Cargando usuarios…", Tema.CUERPO, Tema.SECUNDARIO);
 
     public UsuariosView() {
         initComponents();
-        configurarVista();
-    }
-
-    /** Se monta después de initComponents para conservar los controles del formulario NetBeans. */
-    private void configurarVista() {
-        removeAll();
-        setLayout(new BorderLayout());
-        setBackground(Tema.FONDO);
-        for (JTextField campo : new JTextField[]{txtNombre, txtUsername, txtEmail, txtPassword, txtConfirmar, txtDui,
-                txtTelefono, txtFechaNacimiento, txtFechaContratacion, txtDireccion, txtFiltro}) {
-            Tema.aplicarCampo(campo);
-        }
-        for (JComboBox<String> combo : List.of(cbRol, cbEstado, cbGenero)) {
-            combo.setFont(Tema.CUERPO); combo.setBackground(Tema.SUPERFICIE);
-            combo.setForeground(Tema.TEXTO); combo.setPreferredSize(new Dimension(160, Tema.ALTO_CONTROL));
-        }
-        Tema.aplicarBoton(btnGuardar, true);
-        for (JButton boton : new JButton[]{btnActualizar, btnLimpiar, btnEliminar, btnRecargar}) Tema.aplicarBoton(boton, false);
-        btnGuardar.setText("Guardar usuario"); btnActualizar.setText("Guardar cambios");
-        btnLimpiar.setText("Nuevo usuario"); btnEliminar.setText("Eliminar usuario"); btnEliminar.setForeground(Tema.ERROR);
-        txtEmail.setToolTipText("El correo identifica la cuenta en Supabase Auth y no se cambia después de crearla.");
-
-        views.estilos.Pagina pagina = new views.estilos.Pagina();
-        JPanel encabezado = new JPanel();
-        encabezado.setLayout(new BoxLayout(encabezado, BoxLayout.PAGE_AXIS));
-        encabezado.setOpaque(false);
-        encabezado.add(Tema.texto("ADMINISTRACIÓN  /  PERSONAL", Tema.ETIQUETA, Tema.PRIMARIO));
-        encabezado.add(Box.createVerticalStrut(8));
-        encabezado.add(Tema.texto("Usuarios", Tema.TITULO, Tema.TEXTO));
-        encabezado.add(Box.createVerticalStrut(8));
-        encabezado.add(Tema.texto("Crea cuentas de cajeros y administradores y controla su acceso al sistema.", Tema.CUERPO, Tema.SECUNDARIO));
-        pagina.add(encabezado, BorderLayout.NORTH);
-
-        JPanel cuerpo = new JPanel(new BorderLayout(0, 24));
-        cuerpo.setOpaque(false);
-        JPanel formulario = Tema.tarjeta();
-        JPanel cabecera = new JPanel(new BorderLayout(0, 6));
-        cabecera.setOpaque(false); cabecera.add(lblFormulario, BorderLayout.NORTH);
-        cabecera.add(Tema.texto("* Campos obligatorios. Las fechas usan el formato dd/mm/aaaa.", Tema.CUERPO, Tema.SECUNDARIO), BorderLayout.CENTER);
-        formulario.add(cabecera, BorderLayout.NORTH);
-
-        JPanel campos = new JPanel(new views.estilos.RejillaAdaptable(2, 240, 12));
-        campos.setOpaque(false);
-        campos.add(grupo("Nombre completo *", txtNombre)); campos.add(grupo("Usuario para iniciar sesión *", txtUsername));
-        campos.add(grupo("Correo *", txtEmail)); campos.add(grupo("Rol *", cbRol));
-        campos.add(grupo("Contraseña *", txtPassword)); campos.add(grupo("Confirmar contraseña *", txtConfirmar));
-        campos.add(grupo("Estado", cbEstado)); campos.add(grupo("DUI (12345678-9)", txtDui));
-        campos.add(grupo("Teléfono", txtTelefono)); campos.add(grupo("Género", cbGenero));
-        campos.add(grupo("Fecha de nacimiento", txtFechaNacimiento)); campos.add(grupo("Fecha de contratación", txtFechaContratacion));
-        campos.add(grupo("Dirección", txtDireccion));
-        JPanel datos = new JPanel(new BorderLayout(0, 12));
-        datos.setOpaque(false); datos.add(campos, BorderLayout.NORTH); datos.add(lblAyudaClave, BorderLayout.CENTER);
-        formulario.add(datos, BorderLayout.CENTER);
-        JPanel pie = new JPanel(new BorderLayout(0, 12));
-        pie.setOpaque(false);
-        JPanel acciones = new JPanel(new views.estilos.RejillaAdaptable(2, 180, 8));
-        acciones.setOpaque(false);
-        acciones.add(btnGuardar); acciones.add(btnActualizar); acciones.add(btnLimpiar); acciones.add(btnEliminar);
-        pie.add(acciones, BorderLayout.NORTH); pie.add(lblMensaje, BorderLayout.CENTER);
-        formulario.add(pie, BorderLayout.SOUTH);
-        cuerpo.add(formulario, BorderLayout.NORTH);
-
-        JPanel listado = Tema.tarjeta();
-        JPanel tituloListado = new JPanel(new BorderLayout(8, 12));
-        tituloListado.setOpaque(false);
-        tituloListado.add(Tema.texto("Usuarios registrados", Tema.SUBTITULO, Tema.TEXTO), BorderLayout.NORTH);
-        tituloListado.add(grupo("Buscar por nombre, usuario, correo o rol", txtFiltro), BorderLayout.CENTER);
-        tituloListado.add(btnRecargar, BorderLayout.SOUTH);
-        listado.add(tituloListado, BorderLayout.NORTH);
-        JScrollPane tabla = Tema.tabla(tblUsuarios);
-        tabla.setPreferredSize(new Dimension(500, 230));
-        listado.add(tabla, BorderLayout.CENTER);
-        listado.add(lblCantidad, BorderLayout.SOUTH);
-        cuerpo.add(listado, BorderLayout.CENTER);
-        pagina.add(cuerpo, BorderLayout.CENTER);
-        add(pagina.conScroll(), BorderLayout.CENTER);
+        aplicarEstilos();
         setModoEdicion(false);
     }
 
-    private JPanel grupo(String texto, JComponent campo) {
-        JPanel panel = new JPanel(new BorderLayout(0, 6)); panel.setOpaque(false);
-        JLabel etiqueta = Tema.texto(texto, Tema.ETIQUETA, Tema.TEXTO); etiqueta.setLabelFor(campo);
-        panel.add(etiqueta, BorderLayout.NORTH); panel.add(campo, BorderLayout.CENTER);
-        return panel;
+    /** Bordes de tarjeta, columnas adaptables, tabla y contraseñas: lo que el diseñador no representa. */
+    private void aplicarEstilos() {
+        scrPagina.getViewport().setBackground(Tema.FONDO);
+        scrPagina.getVerticalScrollBar().setUnitIncrement(24);
+        scrPagina.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        tarjeta(pnlFormulario);
+        tarjeta(pnlListado);
+        views.estilos.Adaptable.columnas(pnlCampos, 2, 240, 12);
+        views.estilos.Adaptable.columnas(pnlAcciones, 2, 180, 8);
+        // Tema.campo crea los demás campos; las contraseñas usan JPasswordField y reciben el mismo estilo aquí.
+        Tema.aplicarCampo(txtPassword);
+        Tema.aplicarCampo(txtConfirmar);
+        JLabel[] etiquetas = {lblNombre, lblUsername, lblEmail, lblRol, lblPassword, lblConfirmar, lblEstado, lblDui,
+                lblTelefono, lblGenero, lblFechaNacimiento, lblFechaContratacion, lblDireccion, lblFiltro};
+        JComponent[] controles = {txtNombre, txtUsername, txtEmail, cbRol, txtPassword, txtConfirmar, cbEstado, txtDui,
+                txtTelefono, cbGenero, txtFechaNacimiento, txtFechaContratacion, txtDireccion, txtFiltro};
+        for (int i = 0; i < etiquetas.length; i++) etiquetas[i].setLabelFor(controles[i]);
+        // Los textos largos se ajustan a varias líneas en ventanas estrechas.
+        for (JLabel etiqueta : new JLabel[]{lblSeccion, lblDescripcion, lblObligatorios, lblAyudaClave, lblFiltro, lblCantidad}) {
+            views.estilos.TextoAdaptableUI.aplicar(etiqueta);
+            etiqueta.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        }
+        // Tema.tabla envuelve la tabla en otro JScrollPane: se devuelve a su contenedor del formulario.
+        Tema.tabla(tblUsuarios);
+        scrTabla.setViewportView(tblUsuarios);
+        scrTabla.setBorder(BorderFactory.createLineBorder(Tema.BORDE));
+        scrTabla.getViewport().setBackground(Tema.SUPERFICIE);
+    }
+
+    private static void tarjeta(JComponent panel) {
+        panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Tema.BORDE), panel.getBorder()));
     }
 
     /** Las opciones provienen de la base de datos cuando la columna es una enumeración. */
@@ -138,85 +86,431 @@ public class UsuariosView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        txtNombre = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        txtUsername = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        txtEmail = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
+        scrPagina = new javax.swing.JScrollPane();
+        pnlPagina = new views.estilos.Pagina();
+        pnlEncabezado = new javax.swing.JPanel();
+        lblSeccion = new javax.swing.JLabel();
+        lblTitulo = new javax.swing.JLabel();
+        lblDescripcion = new javax.swing.JLabel();
+        pnlCuerpo = new javax.swing.JPanel();
+        pnlFormulario = new javax.swing.JPanel();
+        pnlCabecera = new javax.swing.JPanel();
+        lblFormulario = new javax.swing.JLabel();
+        lblObligatorios = new javax.swing.JLabel();
+        pnlDatos = new javax.swing.JPanel();
+        pnlCampos = new javax.swing.JPanel();
+        pnlNombre = new javax.swing.JPanel();
+        lblNombre = new javax.swing.JLabel();
+        txtNombre = views.estilos.Tema.campo("", 20);
+        pnlUsername = new javax.swing.JPanel();
+        lblUsername = new javax.swing.JLabel();
+        txtUsername = views.estilos.Tema.campo("", 20);
+        pnlEmail = new javax.swing.JPanel();
+        lblEmail = new javax.swing.JLabel();
+        txtEmail = views.estilos.Tema.campo("", 20);
+        pnlRol = new javax.swing.JPanel();
+        lblRol = new javax.swing.JLabel();
         cbRol = new javax.swing.JComboBox<>();
-        jLabel5 = new javax.swing.JLabel();
+        pnlPassword = new javax.swing.JPanel();
+        lblPassword = new javax.swing.JLabel();
         txtPassword = new javax.swing.JPasswordField();
-        jLabel6 = new javax.swing.JLabel();
+        pnlConfirmar = new javax.swing.JPanel();
+        lblConfirmar = new javax.swing.JLabel();
         txtConfirmar = new javax.swing.JPasswordField();
-        jLabel7 = new javax.swing.JLabel();
+        pnlEstado = new javax.swing.JPanel();
+        lblEstado = new javax.swing.JLabel();
         cbEstado = new javax.swing.JComboBox<>();
-        jLabel8 = new javax.swing.JLabel();
-        txtDui = new javax.swing.JTextField();
-        jLabel9 = new javax.swing.JLabel();
-        txtTelefono = new javax.swing.JTextField();
-        jLabel10 = new javax.swing.JLabel();
+        pnlDui = new javax.swing.JPanel();
+        lblDui = new javax.swing.JLabel();
+        txtDui = views.estilos.Tema.campo("", 20);
+        pnlTelefono = new javax.swing.JPanel();
+        lblTelefono = new javax.swing.JLabel();
+        txtTelefono = views.estilos.Tema.campo("", 20);
+        pnlGenero = new javax.swing.JPanel();
+        lblGenero = new javax.swing.JLabel();
         cbGenero = new javax.swing.JComboBox<>();
-        jLabel11 = new javax.swing.JLabel();
-        txtFechaNacimiento = new javax.swing.JTextField();
-        jLabel12 = new javax.swing.JLabel();
-        txtFechaContratacion = new javax.swing.JTextField();
-        jLabel13 = new javax.swing.JLabel();
-        txtDireccion = new javax.swing.JTextField();
-        btnGuardar = new javax.swing.JButton();
-        btnActualizar = new javax.swing.JButton();
-        btnLimpiar = new javax.swing.JButton();
-        btnEliminar = new javax.swing.JButton();
-        jLabel14 = new javax.swing.JLabel();
-        txtFiltro = new javax.swing.JTextField();
-        btnRecargar = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        pnlFechaNacimiento = new javax.swing.JPanel();
+        lblFechaNacimiento = new javax.swing.JLabel();
+        txtFechaNacimiento = views.estilos.Tema.campo("", 20);
+        pnlFechaContratacion = new javax.swing.JPanel();
+        lblFechaContratacion = new javax.swing.JLabel();
+        txtFechaContratacion = views.estilos.Tema.campo("", 20);
+        pnlDireccion = new javax.swing.JPanel();
+        lblDireccion = new javax.swing.JLabel();
+        txtDireccion = views.estilos.Tema.campo("", 20);
+        lblAyudaClave = new javax.swing.JLabel();
+        pnlPie = new javax.swing.JPanel();
+        pnlAcciones = new javax.swing.JPanel();
+        btnGuardar = views.estilos.Tema.botonPrimario("");
+        btnActualizar = views.estilos.Tema.botonSecundario("");
+        btnLimpiar = views.estilos.Tema.botonSecundario("");
+        btnEliminar = views.estilos.Tema.botonSecundario("");
+        lblMensaje = views.estilos.Tema.mensaje("", views.estilos.Tema.SECUNDARIO);
+        pnlListado = new javax.swing.JPanel();
+        pnlListadoTitulo = new javax.swing.JPanel();
+        lblListado = new javax.swing.JLabel();
+        pnlFiltro = new javax.swing.JPanel();
+        lblFiltro = new javax.swing.JLabel();
+        txtFiltro = views.estilos.Tema.campo("", 20);
+        btnRecargar = views.estilos.Tema.botonSecundario("");
+        scrTabla = new javax.swing.JScrollPane();
         tblUsuarios = new javax.swing.JTable();
+        lblCantidad = new javax.swing.JLabel();
 
-        jLabel1.setText("Nombre completo:");
+        setBackground(new java.awt.Color(244, 245, 247));
+        setLayout(new java.awt.BorderLayout());
 
-        jLabel2.setText("Usuario:");
+        scrPagina.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        jLabel3.setText("Correo:");
+        pnlPagina.setBackground(new java.awt.Color(244, 245, 247));
+        pnlPagina.setBorder(javax.swing.BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        pnlPagina.setLayout(new java.awt.BorderLayout(0, 24));
 
-        jLabel4.setText("Rol:");
+        pnlEncabezado.setOpaque(false);
+        pnlEncabezado.setLayout(new javax.swing.BoxLayout(pnlEncabezado, javax.swing.BoxLayout.PAGE_AXIS));
 
+        lblSeccion.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblSeccion.setForeground(new java.awt.Color(180, 35, 60));
+        lblSeccion.setText("ADMINISTRACIÓN  /  PERSONAL");
+        lblSeccion.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        pnlEncabezado.add(lblSeccion);
+
+        lblTitulo.setFont(new java.awt.Font("SansSerif", 1, 28)); // NOI18N
+        lblTitulo.setForeground(new java.awt.Color(24, 34, 53));
+        lblTitulo.setText("Usuarios");
+        lblTitulo.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        pnlEncabezado.add(lblTitulo);
+
+        lblDescripcion.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        lblDescripcion.setForeground(new java.awt.Color(88, 101, 121));
+        lblDescripcion.setText("Crea cuentas de cajeros y administradores y controla su acceso al sistema.");
+        pnlEncabezado.add(lblDescripcion);
+
+        pnlPagina.add(pnlEncabezado, java.awt.BorderLayout.NORTH);
+
+        pnlCuerpo.setOpaque(false);
+        pnlCuerpo.setLayout(new java.awt.BorderLayout(0, 24));
+
+        pnlFormulario.setBackground(new java.awt.Color(255, 255, 255));
+        pnlFormulario.setBorder(javax.swing.BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        pnlFormulario.setLayout(new java.awt.BorderLayout(16, 16));
+
+        pnlCabecera.setOpaque(false);
+        pnlCabecera.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblFormulario.setFont(new java.awt.Font("SansSerif", 1, 18)); // NOI18N
+        lblFormulario.setForeground(new java.awt.Color(24, 34, 53));
+        lblFormulario.setText("Nuevo usuario");
+        pnlCabecera.add(lblFormulario, java.awt.BorderLayout.NORTH);
+
+        lblObligatorios.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        lblObligatorios.setForeground(new java.awt.Color(88, 101, 121));
+        lblObligatorios.setText("* Campos obligatorios. Las fechas usan el formato dd/mm/aaaa.");
+        pnlCabecera.add(lblObligatorios, java.awt.BorderLayout.CENTER);
+
+        pnlFormulario.add(pnlCabecera, java.awt.BorderLayout.NORTH);
+
+        pnlDatos.setOpaque(false);
+        pnlDatos.setLayout(new java.awt.BorderLayout(0, 12));
+
+        pnlCampos.setOpaque(false);
+        pnlCampos.setLayout(new java.awt.GridLayout(0, 2, 12, 12));
+
+        pnlNombre.setOpaque(false);
+        pnlNombre.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblNombre.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblNombre.setForeground(new java.awt.Color(24, 34, 53));
+        lblNombre.setText("Nombre completo *");
+        pnlNombre.add(lblNombre, java.awt.BorderLayout.NORTH);
+
+        txtNombre.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtNombre.setForeground(new java.awt.Color(24, 34, 53));
+        txtNombre.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlNombre.add(txtNombre, java.awt.BorderLayout.CENTER);
+
+        pnlCampos.add(pnlNombre);
+
+        pnlUsername.setOpaque(false);
+        pnlUsername.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblUsername.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblUsername.setForeground(new java.awt.Color(24, 34, 53));
+        lblUsername.setText("Usuario para iniciar sesión *");
+        pnlUsername.add(lblUsername, java.awt.BorderLayout.NORTH);
+
+        txtUsername.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtUsername.setForeground(new java.awt.Color(24, 34, 53));
+        txtUsername.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlUsername.add(txtUsername, java.awt.BorderLayout.CENTER);
+
+        pnlCampos.add(pnlUsername);
+
+        pnlEmail.setOpaque(false);
+        pnlEmail.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblEmail.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblEmail.setForeground(new java.awt.Color(24, 34, 53));
+        lblEmail.setText("Correo *");
+        pnlEmail.add(lblEmail, java.awt.BorderLayout.NORTH);
+
+        txtEmail.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtEmail.setForeground(new java.awt.Color(24, 34, 53));
+        txtEmail.setToolTipText("El correo identifica la cuenta en Supabase Auth y no se cambia después de crearla.");
+        txtEmail.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlEmail.add(txtEmail, java.awt.BorderLayout.CENTER);
+
+        pnlCampos.add(pnlEmail);
+
+        pnlRol.setOpaque(false);
+        pnlRol.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblRol.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblRol.setForeground(new java.awt.Color(24, 34, 53));
+        lblRol.setText("Rol *");
+        pnlRol.add(lblRol, java.awt.BorderLayout.NORTH);
+
+        cbRol.setBackground(new java.awt.Color(255, 255, 255));
+        cbRol.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        cbRol.setForeground(new java.awt.Color(24, 34, 53));
         cbRol.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cajero", "Administrador" }));
+        cbRol.setPreferredSize(new java.awt.Dimension(160, 40));
+        pnlRol.add(cbRol, java.awt.BorderLayout.CENTER);
 
-        jLabel5.setText("Contraseña:");
+        pnlCampos.add(pnlRol);
 
-        jLabel6.setText("Confirmar contraseña:");
+        pnlPassword.setOpaque(false);
+        pnlPassword.setLayout(new java.awt.BorderLayout(0, 6));
 
-        jLabel7.setText("Estado:");
+        lblPassword.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblPassword.setForeground(new java.awt.Color(24, 34, 53));
+        lblPassword.setText("Contraseña *");
+        pnlPassword.add(lblPassword, java.awt.BorderLayout.NORTH);
 
+        txtPassword.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtPassword.setForeground(new java.awt.Color(24, 34, 53));
+        txtPassword.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlPassword.add(txtPassword, java.awt.BorderLayout.CENTER);
+
+        pnlCampos.add(pnlPassword);
+
+        pnlConfirmar.setOpaque(false);
+        pnlConfirmar.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblConfirmar.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblConfirmar.setForeground(new java.awt.Color(24, 34, 53));
+        lblConfirmar.setText("Confirmar contraseña *");
+        pnlConfirmar.add(lblConfirmar, java.awt.BorderLayout.NORTH);
+
+        txtConfirmar.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtConfirmar.setForeground(new java.awt.Color(24, 34, 53));
+        txtConfirmar.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlConfirmar.add(txtConfirmar, java.awt.BorderLayout.CENTER);
+
+        pnlCampos.add(pnlConfirmar);
+
+        pnlEstado.setOpaque(false);
+        pnlEstado.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblEstado.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblEstado.setForeground(new java.awt.Color(24, 34, 53));
+        lblEstado.setText("Estado");
+        pnlEstado.add(lblEstado, java.awt.BorderLayout.NORTH);
+
+        cbEstado.setBackground(new java.awt.Color(255, 255, 255));
+        cbEstado.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        cbEstado.setForeground(new java.awt.Color(24, 34, 53));
         cbEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Activo", "Inactivo" }));
+        cbEstado.setPreferredSize(new java.awt.Dimension(160, 40));
+        pnlEstado.add(cbEstado, java.awt.BorderLayout.CENTER);
 
-        jLabel8.setText("DUI:");
+        pnlCampos.add(pnlEstado);
 
-        jLabel9.setText("Teléfono:");
+        pnlDui.setOpaque(false);
+        pnlDui.setLayout(new java.awt.BorderLayout(0, 6));
 
-        jLabel10.setText("Género:");
+        lblDui.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblDui.setForeground(new java.awt.Color(24, 34, 53));
+        lblDui.setText("DUI (12345678-9)");
+        pnlDui.add(lblDui, java.awt.BorderLayout.NORTH);
 
+        txtDui.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtDui.setForeground(new java.awt.Color(24, 34, 53));
+        txtDui.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlDui.add(txtDui, java.awt.BorderLayout.CENTER);
+
+        pnlCampos.add(pnlDui);
+
+        pnlTelefono.setOpaque(false);
+        pnlTelefono.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblTelefono.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblTelefono.setForeground(new java.awt.Color(24, 34, 53));
+        lblTelefono.setText("Teléfono");
+        pnlTelefono.add(lblTelefono, java.awt.BorderLayout.NORTH);
+
+        txtTelefono.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtTelefono.setForeground(new java.awt.Color(24, 34, 53));
+        txtTelefono.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlTelefono.add(txtTelefono, java.awt.BorderLayout.CENTER);
+
+        pnlCampos.add(pnlTelefono);
+
+        pnlGenero.setOpaque(false);
+        pnlGenero.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblGenero.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblGenero.setForeground(new java.awt.Color(24, 34, 53));
+        lblGenero.setText("Género");
+        pnlGenero.add(lblGenero, java.awt.BorderLayout.NORTH);
+
+        cbGenero.setBackground(new java.awt.Color(255, 255, 255));
+        cbGenero.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        cbGenero.setForeground(new java.awt.Color(24, 34, 53));
         cbGenero.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Sin especificar", "Femenino", "Masculino", "Otro" }));
+        cbGenero.setPreferredSize(new java.awt.Dimension(160, 40));
+        pnlGenero.add(cbGenero, java.awt.BorderLayout.CENTER);
 
-        jLabel11.setText("Fecha de nacimiento:");
+        pnlCampos.add(pnlGenero);
 
-        jLabel12.setText("Fecha de contratación:");
+        pnlFechaNacimiento.setOpaque(false);
+        pnlFechaNacimiento.setLayout(new java.awt.BorderLayout(0, 6));
 
-        jLabel13.setText("Dirección:");
+        lblFechaNacimiento.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblFechaNacimiento.setForeground(new java.awt.Color(24, 34, 53));
+        lblFechaNacimiento.setText("Fecha de nacimiento");
+        pnlFechaNacimiento.add(lblFechaNacimiento, java.awt.BorderLayout.NORTH);
 
-        btnGuardar.setText("Guardar");
+        txtFechaNacimiento.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtFechaNacimiento.setForeground(new java.awt.Color(24, 34, 53));
+        txtFechaNacimiento.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlFechaNacimiento.add(txtFechaNacimiento, java.awt.BorderLayout.CENTER);
 
-        btnActualizar.setText("Actualizar");
+        pnlCampos.add(pnlFechaNacimiento);
 
-        btnLimpiar.setText("Limpiar");
+        pnlFechaContratacion.setOpaque(false);
+        pnlFechaContratacion.setLayout(new java.awt.BorderLayout(0, 6));
 
-        btnEliminar.setText("Eliminar");
+        lblFechaContratacion.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblFechaContratacion.setForeground(new java.awt.Color(24, 34, 53));
+        lblFechaContratacion.setText("Fecha de contratación");
+        pnlFechaContratacion.add(lblFechaContratacion, java.awt.BorderLayout.NORTH);
 
-        jLabel14.setText("Filtrar usuarios:");
+        txtFechaContratacion.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtFechaContratacion.setForeground(new java.awt.Color(24, 34, 53));
+        txtFechaContratacion.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlFechaContratacion.add(txtFechaContratacion, java.awt.BorderLayout.CENTER);
 
+        pnlCampos.add(pnlFechaContratacion);
+
+        pnlDireccion.setOpaque(false);
+        pnlDireccion.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblDireccion.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblDireccion.setForeground(new java.awt.Color(24, 34, 53));
+        lblDireccion.setText("Dirección");
+        pnlDireccion.add(lblDireccion, java.awt.BorderLayout.NORTH);
+
+        txtDireccion.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtDireccion.setForeground(new java.awt.Color(24, 34, 53));
+        txtDireccion.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlDireccion.add(txtDireccion, java.awt.BorderLayout.CENTER);
+
+        pnlCampos.add(pnlDireccion);
+
+        pnlDatos.add(pnlCampos, java.awt.BorderLayout.NORTH);
+
+        lblAyudaClave.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        lblAyudaClave.setForeground(new java.awt.Color(88, 101, 121));
+        lblAyudaClave.setText("La contraseña debe tener al menos 8 caracteres y combinar letras y números.");
+        pnlDatos.add(lblAyudaClave, java.awt.BorderLayout.CENTER);
+
+        pnlFormulario.add(pnlDatos, java.awt.BorderLayout.CENTER);
+
+        pnlPie.setOpaque(false);
+        pnlPie.setLayout(new java.awt.BorderLayout(0, 12));
+
+        pnlAcciones.setOpaque(false);
+        pnlAcciones.setLayout(new java.awt.GridLayout(0, 2, 8, 8));
+
+        btnGuardar.setBackground(new java.awt.Color(180, 35, 60));
+        btnGuardar.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        btnGuardar.setForeground(new java.awt.Color(255, 255, 255));
+        btnGuardar.setText("Guardar usuario");
+        btnGuardar.setPreferredSize(new java.awt.Dimension(180, 40));
+        pnlAcciones.add(btnGuardar);
+
+        btnActualizar.setBackground(new java.awt.Color(255, 255, 255));
+        btnActualizar.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        btnActualizar.setForeground(new java.awt.Color(24, 34, 53));
+        btnActualizar.setText("Guardar cambios");
+        btnActualizar.setPreferredSize(new java.awt.Dimension(180, 40));
+        pnlAcciones.add(btnActualizar);
+
+        btnLimpiar.setBackground(new java.awt.Color(255, 255, 255));
+        btnLimpiar.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        btnLimpiar.setForeground(new java.awt.Color(24, 34, 53));
+        btnLimpiar.setText("Nuevo usuario");
+        btnLimpiar.setPreferredSize(new java.awt.Dimension(180, 40));
+        pnlAcciones.add(btnLimpiar);
+
+        btnEliminar.setBackground(new java.awt.Color(255, 255, 255));
+        btnEliminar.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        btnEliminar.setForeground(new java.awt.Color(180, 35, 24));
+        btnEliminar.setText("Eliminar usuario");
+        btnEliminar.setPreferredSize(new java.awt.Dimension(180, 40));
+        pnlAcciones.add(btnEliminar);
+
+        pnlPie.add(pnlAcciones, java.awt.BorderLayout.NORTH);
+
+        lblMensaje.setBackground(new java.awt.Color(244, 245, 247));
+        lblMensaje.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        lblMensaje.setForeground(new java.awt.Color(88, 101, 121));
+        lblMensaje.setText("Completa los datos para agregar un cajero o administrador.");
+        lblMensaje.setOpaque(true);
+        pnlPie.add(lblMensaje, java.awt.BorderLayout.CENTER);
+
+        pnlFormulario.add(pnlPie, java.awt.BorderLayout.SOUTH);
+
+        pnlCuerpo.add(pnlFormulario, java.awt.BorderLayout.NORTH);
+
+        pnlListado.setBackground(new java.awt.Color(255, 255, 255));
+        pnlListado.setBorder(javax.swing.BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        pnlListado.setLayout(new java.awt.BorderLayout(16, 16));
+
+        pnlListadoTitulo.setOpaque(false);
+        pnlListadoTitulo.setLayout(new java.awt.BorderLayout(8, 12));
+
+        lblListado.setFont(new java.awt.Font("SansSerif", 1, 18)); // NOI18N
+        lblListado.setForeground(new java.awt.Color(24, 34, 53));
+        lblListado.setText("Usuarios registrados");
+        pnlListadoTitulo.add(lblListado, java.awt.BorderLayout.NORTH);
+
+        pnlFiltro.setOpaque(false);
+        pnlFiltro.setLayout(new java.awt.BorderLayout(0, 6));
+
+        lblFiltro.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblFiltro.setForeground(new java.awt.Color(24, 34, 53));
+        lblFiltro.setText("Buscar por nombre, usuario, correo o rol");
+        pnlFiltro.add(lblFiltro, java.awt.BorderLayout.NORTH);
+
+        txtFiltro.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        txtFiltro.setForeground(new java.awt.Color(24, 34, 53));
+        txtFiltro.setPreferredSize(new java.awt.Dimension(240, 40));
+        pnlFiltro.add(txtFiltro, java.awt.BorderLayout.CENTER);
+
+        pnlListadoTitulo.add(pnlFiltro, java.awt.BorderLayout.CENTER);
+
+        btnRecargar.setBackground(new java.awt.Color(255, 255, 255));
+        btnRecargar.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        btnRecargar.setForeground(new java.awt.Color(24, 34, 53));
         btnRecargar.setText("Actualizar listado");
+        btnRecargar.setPreferredSize(new java.awt.Dimension(180, 40));
+        pnlListadoTitulo.add(btnRecargar, java.awt.BorderLayout.SOUTH);
+
+        pnlListado.add(pnlListadoTitulo, java.awt.BorderLayout.NORTH);
+
+        scrTabla.setPreferredSize(new java.awt.Dimension(500, 230));
 
         tblUsuarios.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -234,124 +528,22 @@ public class UsuariosView extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane1.setViewportView(tblUsuarios);
+        scrTabla.setViewportView(tblUsuarios);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel7)
-                            .addComponent(jLabel9)
-                            .addComponent(jLabel11)
-                            .addComponent(jLabel13))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtNombre, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
-                            .addComponent(txtEmail)
-                            .addComponent(txtPassword)
-                            .addComponent(cbEstado, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtTelefono)
-                            .addComponent(txtFechaNacimiento)
-                            .addComponent(txtDireccion))
-                        .addGap(40, 40, 40)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel10)
-                            .addComponent(jLabel12))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtUsername, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
-                            .addComponent(cbRol, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtConfirmar)
-                            .addComponent(txtDui)
-                            .addComponent(cbGenero, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtFechaContratacion)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnGuardar)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnActualizar)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnLimpiar)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnEliminar))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel14)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnRecargar)))
-                .addGap(30, 30, 30))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(txtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2)
-                    .addComponent(txtUsername, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4)
-                    .addComponent(cbRol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6)
-                    .addComponent(txtConfirmar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
-                    .addComponent(cbEstado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8)
-                    .addComponent(txtDui, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel9)
-                    .addComponent(txtTelefono, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel10)
-                    .addComponent(cbGenero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel11)
-                    .addComponent(txtFechaNacimiento, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel12)
-                    .addComponent(txtFechaContratacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel13)
-                    .addComponent(txtDireccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(25, 25, 25)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnGuardar)
-                    .addComponent(btnActualizar)
-                    .addComponent(btnLimpiar)
-                    .addComponent(btnEliminar))
-                .addGap(25, 25, 25)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel14)
-                    .addComponent(txtFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnRecargar))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
-                .addGap(30, 30, 30))
-        );
+        pnlListado.add(scrTabla, java.awt.BorderLayout.CENTER);
+
+        lblCantidad.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        lblCantidad.setForeground(new java.awt.Color(88, 101, 121));
+        lblCantidad.setText("Cargando usuarios…");
+        pnlListado.add(lblCantidad, java.awt.BorderLayout.SOUTH);
+
+        pnlCuerpo.add(pnlListado, java.awt.BorderLayout.CENTER);
+
+        pnlPagina.add(pnlCuerpo, java.awt.BorderLayout.CENTER);
+
+        scrPagina.setViewportView(pnlPagina);
+
+        add(scrPagina, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     public String getNombre() { return txtNombre.getText(); }
@@ -405,21 +597,56 @@ public class UsuariosView extends javax.swing.JPanel {
     private javax.swing.JComboBox<String> cbEstado;
     private javax.swing.JComboBox<String> cbGenero;
     private javax.swing.JComboBox<String> cbRol;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblAyudaClave;
+    private javax.swing.JLabel lblCantidad;
+    private javax.swing.JLabel lblConfirmar;
+    private javax.swing.JLabel lblDescripcion;
+    private javax.swing.JLabel lblDireccion;
+    private javax.swing.JLabel lblDui;
+    private javax.swing.JLabel lblEmail;
+    private javax.swing.JLabel lblEstado;
+    private javax.swing.JLabel lblFechaContratacion;
+    private javax.swing.JLabel lblFechaNacimiento;
+    private javax.swing.JLabel lblFiltro;
+    private javax.swing.JLabel lblFormulario;
+    private javax.swing.JLabel lblGenero;
+    private javax.swing.JLabel lblListado;
+    private javax.swing.JLabel lblMensaje;
+    private javax.swing.JLabel lblNombre;
+    private javax.swing.JLabel lblObligatorios;
+    private javax.swing.JLabel lblPassword;
+    private javax.swing.JLabel lblRol;
+    private javax.swing.JLabel lblSeccion;
+    private javax.swing.JLabel lblTelefono;
+    private javax.swing.JLabel lblTitulo;
+    private javax.swing.JLabel lblUsername;
+    private javax.swing.JPanel pnlAcciones;
+    private javax.swing.JPanel pnlCabecera;
+    private javax.swing.JPanel pnlCampos;
+    private javax.swing.JPanel pnlConfirmar;
+    private javax.swing.JPanel pnlCuerpo;
+    private javax.swing.JPanel pnlDatos;
+    private javax.swing.JPanel pnlDireccion;
+    private javax.swing.JPanel pnlDui;
+    private javax.swing.JPanel pnlEmail;
+    private javax.swing.JPanel pnlEncabezado;
+    private javax.swing.JPanel pnlEstado;
+    private javax.swing.JPanel pnlFechaContratacion;
+    private javax.swing.JPanel pnlFechaNacimiento;
+    private javax.swing.JPanel pnlFiltro;
+    private javax.swing.JPanel pnlFormulario;
+    private javax.swing.JPanel pnlGenero;
+    private javax.swing.JPanel pnlListado;
+    private javax.swing.JPanel pnlListadoTitulo;
+    private javax.swing.JPanel pnlNombre;
+    private javax.swing.JPanel pnlPagina;
+    private javax.swing.JPanel pnlPassword;
+    private javax.swing.JPanel pnlPie;
+    private javax.swing.JPanel pnlRol;
+    private javax.swing.JPanel pnlTelefono;
+    private javax.swing.JPanel pnlUsername;
+    private javax.swing.JScrollPane scrPagina;
+    private javax.swing.JScrollPane scrTabla;
     private javax.swing.JTable tblUsuarios;
     private javax.swing.JPasswordField txtConfirmar;
     private javax.swing.JTextField txtDireccion;

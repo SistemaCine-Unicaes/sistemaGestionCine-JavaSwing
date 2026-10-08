@@ -108,7 +108,8 @@ La vista utiliza los colores, tipografía, tarjetas, campos y botones compartido
   Los usuarios anteriores con rol `Admin` se siguen reconociendo como administradores.
 - **Cerrar Sesión:** limpia el usuario actual, cierra el MDI y abre un login conectado.
 
-Se conservaron los formularios existentes de películas, taquilla y reportes. Salas utiliza un catálogo programático. La programación de funciones
+Se conservaron los formularios existentes de películas, taquilla y reportes. Usuarios define su diseño completo
+en `UsuariosView.form`, visible en la pestaña Design de NetBeans, como taquilla y corte de caja. Salas utiliza un catálogo programático. La programación de funciones
 y el precio general tienen paneles propios dentro del MDI. El mapa de asientos y el recibo se abren como
 diálogos durante la venta. Los botones laterales del MDI también están definidos en su archivo `.form`.
 Películas, el login y el menú lateral aplican `Tema` después de inicializar los controles de NetBeans. Salas comparte el mismo tema.
