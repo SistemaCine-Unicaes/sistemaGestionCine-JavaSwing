@@ -37,6 +37,15 @@ No se sustituye Auth por una validación local de la contraseña.
 **Configuración heredada:** la conexión JDBC y Auth del código original apuntaban a proyectos diferentes.
 La aplicación detecta esa inconsistencia y solicita corregirla antes de enviar credenciales.
 
+### Cuentas creadas desde el módulo Usuarios
+
+El módulo registra la cuenta con la clave pública de Supabase Auth (no requiere la clave de servicio).
+Con **Confirm email** activo en Supabase (configuración de Auth, proveedor Email), el nuevo usuario debe abrir el enlace
+que recibe por correo antes de iniciar sesión; el login lo indica si intenta entrar sin confirmar. El enlace confirma la cuenta
+aunque la página de destino no cargue. El servidor de correo incluido en Supabase limita los envíos por hora;
+si aparece el aviso de límite, esperar o configurar un SMTP propio, o desactivar **Confirm email** si el equipo lo decide.
+Eliminar un usuario de la tabla no borra su cuenta de Auth; ese correo no se puede reutilizar hasta borrarla en el panel de Supabase.
+
 ## Precio de los boletos
 
 Ejecutar una vez `database/001_configuracion_cine.sql` en el proyecto de base de datos elegido.
@@ -50,9 +59,11 @@ Si otra caja tiene el precio anterior, deberá volver a abrir **Venta de boletos
 ## Recorridos
 
 El lateral del MDI reúne **Cartelera**, **Películas**, **Salas**, **Funciones**, **Venta de boletos**, **Corte de caja**,
-**Configuración** y **Cerrar Sesión**. Los siete módulos se muestran en el panel central.
-Los accesos del menú **Administración** abren los mismos módulos. El cajero tiene habilitadas la cartelera y la venta;
-el administrador puede utilizar todos los módulos. El título de la ventana indica el módulo y el usuario actual.
+**Configuración**, **Usuarios** y **Cerrar Sesión**. Los ocho módulos se muestran en el panel central.
+Los accesos del menú **Administración** abren los mismos módulos. El cajero solo ve la sección **Operación**
+(cartelera y venta): la sección **Administración** del lateral, el menú **Administración** y los módulos administrativos
+del menú **Módulos** no se le muestran. Además, cada módulo vuelve a comprobar el rol antes de abrirse.
+El administrador puede utilizar todos los módulos. El título de la ventana indica el módulo y el usuario actual.
 
 En **Cartelera** se muestran únicamente los pósteres de películas con estado `CARTELERA` y su botón
 **Ver horarios**, con búsqueda por título sin distinguir acentos. Ese botón abre una pantalla independiente
@@ -85,6 +96,16 @@ La vista utiliza los colores, tipografía, tarjetas, campos y botones compartido
   La regla se comprueba otra vez dentro de la transacción de venta con los boletos actuales de esa función.
 - **Administración → Corte de caja:** reportes diarios, mensuales o anuales; el mes/año se obtiene de la fecha introducida.
   Incluye cantidad e importe por cajero y totales del mismo período.
+- **Administración → Usuarios:** crea, lista, edita y elimina cajeros y administradores (tabla `Usuario`, campo `rol`).
+  **Guardar usuario** crea la cuenta en Supabase Auth y la fila en `Usuario` dentro de la misma transacción:
+  si Supabase la rechaza, no queda ninguna fila. La contraseña exige 8 caracteres con letras y números y se confirma dos veces.
+  Se rechazan usuario, correo o DUI repetidos (sin distinguir mayúsculas). Al editar se cambian nombre, usuario, rol, estado
+  y datos personales; el correo y la contraseña pertenecen a Supabase Auth y no se modifican desde la aplicación.
+  Para impedir el acceso de alguien basta con cambiarlo a **Inactivo**; las ventas de un cajero inactivo se conservan
+  en el corte de caja. **Eliminar usuario** solo se permite si no tiene ventas. Ningún administrador puede quitarse
+  su propio rol, desactivarse ni eliminarse, y siempre debe quedar al menos un administrador activo.
+  Los roles, estados y géneros se leen de las enumeraciones de PostgreSQL cuando la columna es de ese tipo.
+  Los usuarios anteriores con rol `Admin` se siguen reconociendo como administradores.
 - **Cerrar Sesión:** limpia el usuario actual, cierra el MDI y abre un login conectado.
 
 Se conservaron los formularios existentes de películas, taquilla y reportes. Salas utiliza un catálogo programático. La programación de funciones
@@ -137,6 +158,8 @@ mvn test
 ```
 
 Prueba permisos, cierre de sesión, selección de asientos, importes, períodos, validaciones de sala, JSON y recibos.
+También prueba el formulario y las reglas de usuarios: datos obligatorios, formatos de correo/DUI/teléfono/fechas,
+contraseña y confirmación, roles heredados y que un cajero no pueda gestionar usuarios ni abrir una conexión.
 Las pruebas PostgreSQL se omiten por defecto para que este comando no dependa de una conexión remota.
 
 Para comprobar transacciones y consultas con PostgreSQL:
@@ -151,6 +174,10 @@ asientos ajenos/averiados, cambios de precio, limpieza, medianoche, reportes y e
 También prueban la instalación repetible de los seis planos, sus capacidades/coordenadas, la conservación de salas
 anteriores y el bloqueo de mantenimiento por boletos pendientes. Requieren haber instalado el estado
 `MANTENIMIENTO` de la migración; las pruebas no alteran los tipos compartidos de la base.
+Para usuarios comprueban (solo leyendo el catálogo) que `public.usuario` tiene `rol` y los demás campos del módulo,
+y sobre tablas temporales: creación con rollback si Auth rechaza la cuenta, duplicados, que siempre quede un administrador
+activo, que no se eliminen usuarios con ventas y que `rol`/`genero` funcionen también como enumeraciones.
+Supabase Auth se sustituye por un registro simulado: estas pruebas no crean cuentas ni envían correos.
 
 Para comprobar los formularios en un entorno con escritorio (sin mostrar ventanas):
 
@@ -159,4 +186,4 @@ mvn '-Dcine.swing=true' '-Dtest=SwingIntegrationTest' test
 ```
 
 Comprueba el botón del login, el reemplazo de paneles del MDI, los permisos, la selección de asientos por identificador
-y el modal de mantenimiento. Las pruebas de paneles comprueban el cambio entre anchos de 480, 800 y 1280 píxeles.
+y el modal de mantenimiento. Para el cajero verifica que no aparezcan la sección ni los accesos de administración. Las pruebas de paneles comprueban el cambio entre anchos de 480, 800 y 1280 píxeles.
