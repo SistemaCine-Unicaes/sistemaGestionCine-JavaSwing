@@ -8,6 +8,8 @@ import views.estilos.Tema;
 /** Cierre de caja: filtros de periodo, indicadores, ventas por cajero y totales. */
 public class CorteCajaView extends javax.swing.JPanel {
     public static final int COL_CAJERO = 0, COL_TICKETS = 1, COL_TOTAL = 2, COL_PARTICIPACION = 3;
+    private int columnasIndicadores;
+    private Boolean distribucionCompacta;
 
     public CorteCajaView() {
         initComponents();
@@ -18,6 +20,8 @@ public class CorteCajaView extends javax.swing.JPanel {
     private void aplicarEstilos() {
         scrPagina.getViewport().setBackground(Tema.FONDO);
         scrPagina.getVerticalScrollBar().setUnitIncrement(24);
+        scrPagina.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        views.estilos.Adaptable.envolver(scrPagina, pnlPagina);
         tarjeta(pnlFiltros, Tema.BORDE);
         tarjeta(pnlDetalle, Tema.BORDE);
         indicador(pnlIndIngresos, Tema.TEXTO, Tema.PRIMARIO);
@@ -65,6 +69,48 @@ public class CorteCajaView extends javax.swing.JPanel {
         });
     }
 
+    @Override public void doLayout() {
+        // Reserva el margen de la página y la barra vertical, incluso antes de su primer trazado.
+        int ancho = Math.max(0, getWidth() - 64 - scrPagina.getVerticalScrollBar().getPreferredSize().width);
+        adaptarDistribucion(ancho);
+        super.doLayout();
+    }
+
+    private void adaptarDistribucion(int ancho) {
+        int columnas = ancho >= 960 ? 4 : ancho >= 460 ? 2 : 1;
+        if (columnas != columnasIndicadores) {
+            columnasIndicadores = columnas;
+            pnlIndicadores.setLayout(new GridLayout(0, columnas, 16, 16));
+        }
+        boolean compacto = ancho < 760;
+        if (distribucionCompacta != null && distribucionCompacta == compacto) return;
+        distribucionCompacta = compacto;
+
+        pnlFiltros.removeAll();
+        pnlFiltros.setLayout(new GridBagLayout());
+        JPanel[] filtros = {pnlFiltroFecha, pnlFiltroTipo, pnlFiltroAccion};
+        for (int i = 0; i < filtros.length; i++) {
+            GridBagConstraints c = new GridBagConstraints();
+            c.gridx = compacto ? 0 : i; c.gridy = compacto ? i : 0;
+            c.weightx = compacto || i == 1 ? 1 : 0;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.anchor = GridBagConstraints.NORTHWEST;
+            c.insets = new Insets(compacto && i > 0 ? 12 : 0, 8, 0, 8);
+            pnlFiltros.add(filtros[i], c);
+        }
+        lblFiltroAccion.setVisible(!compacto);
+        pnlDetalleTitulo.setLayout(compacto ? new GridLayout(2, 1, 0, 6) : new BorderLayout());
+        pnlDetalleTitulo.removeAll();
+        pnlDetalleTitulo.add(lblDetalleTitulo, BorderLayout.WEST);
+        pnlDetalleTitulo.add(lblDetalleAyuda, BorderLayout.EAST);
+        pnlTotales.removeAll();
+        pnlTotales.setLayout(compacto ? new GridLayout(2, 1, 0, 8) : new BorderLayout(16, 0));
+        pnlCifras.setLayout(compacto ? new GridLayout(2, 2, 12, 8) : new FlowLayout(FlowLayout.TRAILING, 24, 0));
+        pnlTotales.add(lblTotalesTitulo, BorderLayout.WEST);
+        pnlTotales.add(pnlCifras, BorderLayout.EAST);
+        pnlPagina.revalidate();
+    }
+
     private static void tarjeta(JComponent panel, Color borde) {
         panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(borde), panel.getBorder()));
     }
@@ -85,7 +131,7 @@ public class CorteCajaView extends javax.swing.JPanel {
 
         grpTipo = new javax.swing.ButtonGroup();
         scrPagina = new javax.swing.JScrollPane();
-        pnlPagina = new javax.swing.JPanel();
+        pnlPagina = new views.estilos.Pagina();
         pnlSuperior = new javax.swing.JPanel();
         pnlEncabezado = new javax.swing.JPanel();
         lblSeccion = new javax.swing.JLabel();
@@ -434,7 +480,7 @@ public class CorteCajaView extends javax.swing.JPanel {
 
         scrPagina.setViewportView(pnlPagina);
 
-        add(scrPagina, java.awt.BorderLayout.LINE_END);
+        add(scrPagina, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     public String getFecha() {

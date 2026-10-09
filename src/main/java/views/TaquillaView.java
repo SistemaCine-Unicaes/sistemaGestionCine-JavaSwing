@@ -6,10 +6,28 @@ import views.estilos.Tema;
 
 /** Venta de boletos: selección de función a la izquierda y resumen de compra a la derecha. */
 public class TaquillaView extends javax.swing.JPanel {
+    private final JPanel pnlPosterResumen = new JPanel(new BorderLayout());
+    private String posterActual;
 
     public TaquillaView() {
         initComponents();
         aplicarEstilos();
+        pnlPosterResumen.setOpaque(false);
+        pnlPosterResumen.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        pnlPosterResumen.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlPosterResumen.setMaximumSize(new Dimension(Integer.MAX_VALUE, 215));
+        pnlPosterResumen.add(new PosterView(null), BorderLayout.CENTER);
+        pnlDetalleResumen.add(pnlPosterResumen, 0);
+    }
+
+    public void mostrarPoster(String ruta) {
+        if (java.util.Objects.equals(posterActual, ruta)) return;
+        posterActual = ruta;
+        pnlPosterResumen.removeAll();
+        PosterView poster = new PosterView(ruta);
+        poster.getAccessibleContext().setAccessibleName("Póster de la película seleccionada");
+        pnlPosterResumen.add(poster, BorderLayout.CENTER);
+        pnlPosterResumen.revalidate(); pnlPosterResumen.repaint();
     }
 
     /** Bordes compuestos y ajustes que el diseñador no representa; el resto vive en el .form. */
@@ -20,6 +38,13 @@ public class TaquillaView extends javax.swing.JPanel {
                 BorderFactory.createMatteBorder(0, 0, 4, 0, Tema.PRIMARIO), pnlCabeceraResumen.getBorder()));
         scrPagina.getViewport().setBackground(Tema.FONDO);
         scrPagina.getVerticalScrollBar().setUnitIncrement(24);
+        views.estilos.Adaptable.columnas(pnlCuerpo, 2, 410, 16);
+        views.estilos.Adaptable.columnas(pnlDatos, 2, 140, 16);
+        views.estilos.Adaptable.envolver(scrPagina, pnlPagina);
+        for (JLabel etiqueta : new JLabel[]{lblDescripcion,lblEstado,lblPelicula,lblAyuda1,lblAyuda2,lblAyuda3,lblNota}) {
+            views.estilos.TextoAdaptableUI.aplicar(etiqueta);
+            etiqueta.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        }
     }
 
     private static void tarjeta(JComponent panel) {
