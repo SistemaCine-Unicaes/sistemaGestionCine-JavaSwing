@@ -28,13 +28,17 @@ final class BarraLateral extends JPanel {
         seccion(menu, "OPERACIÓN");
         agregar(menu, MDI.Modulo.CARTELERA);
         agregar(menu, MDI.Modulo.TAQUILLA);
-        menu.add(Box.createVerticalStrut(20));
-        seccion(menu, "ADMINISTRACIÓN");
-        agregar(menu, MDI.Modulo.PELICULAS);
-        agregar(menu, MDI.Modulo.SALAS);
-        agregar(menu, MDI.Modulo.FUNCIONES);
-        agregar(menu, MDI.Modulo.CORTE_CAJA);
-        agregar(menu, MDI.Modulo.CONFIGURACION);
+        // El cajero no ve la sección de administración.
+        if (config.Sesion.esAdministrador(usuario)) {
+            menu.add(Box.createVerticalStrut(20));
+            seccion(menu, "ADMINISTRACIÓN");
+            agregar(menu, MDI.Modulo.PELICULAS);
+            agregar(menu, MDI.Modulo.SALAS);
+            agregar(menu, MDI.Modulo.FUNCIONES);
+            agregar(menu, MDI.Modulo.CORTE_CAJA);
+            agregar(menu, MDI.Modulo.CONFIGURACION);
+            agregar(menu, MDI.Modulo.USUARIOS);
+        }
         JScrollPane scroll = new JScrollPane(menu);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);

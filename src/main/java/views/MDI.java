@@ -4,11 +4,13 @@ public class MDI extends javax.swing.JFrame {
     private BarraLateral barraLateral;
     public enum Modulo {
         CARTELERA("Cartelera"), PELICULAS("Películas"), SALAS("Salas"), FUNCIONES("Programar función"),
-        TAQUILLA("Venta de boletos"), CORTE_CAJA("Corte de caja"), CONFIGURACION("Configuración");
+        TAQUILLA("Venta de boletos"), CORTE_CAJA("Corte de caja"), CONFIGURACION("Configuración"), USUARIOS("Usuarios");
 
         private final String titulo;
         Modulo(String titulo) { this.titulo = titulo; }
         public String getTitulo() { return titulo; }
+        /** Módulos del cajero; los demás son de administración y no se muestran al cajero. */
+        public boolean esOperacion() { return this == CARTELERA || this == TAQUILLA; }
     }
 
     public MDI() {
@@ -25,7 +27,8 @@ public class MDI extends javax.swing.JFrame {
         javax.swing.JMenu modulos = new javax.swing.JMenu("Módulos");
         for (Modulo modulo : Modulo.values()) {
             javax.swing.JMenuItem item = new javax.swing.JMenuItem(modulo.getTitulo());
-            item.setEnabled(config.Sesion.esAdministrador() || modulo == Modulo.CARTELERA || modulo == Modulo.TAQUILLA);
+            boolean permitido = config.Sesion.esAdministrador() || modulo.esOperacion();
+            item.setEnabled(permitido); item.setVisible(permitido);
             item.addActionListener(e -> navegar(modulo)); modulos.add(item);
         }
         javax.swing.JMenuItem salir = new javax.swing.JMenuItem("Cerrar sesión");
@@ -38,19 +41,21 @@ public class MDI extends javax.swing.JFrame {
         javax.swing.JMenuItem funciones = new javax.swing.JMenuItem("Programar función");
         javax.swing.JMenuItem corte = new javax.swing.JMenuItem("Corte de caja");
         javax.swing.JMenuItem configuracion = new javax.swing.JMenuItem("Configuración");
+        javax.swing.JMenuItem usuarios = new javax.swing.JMenuItem("Usuarios");
         funciones.addActionListener(e -> navegar(Modulo.FUNCIONES));
         corte.addActionListener(e -> navegar(Modulo.CORTE_CAJA));
         configuracion.addActionListener(e -> navegar(Modulo.CONFIGURACION));
-        administracion.add(funciones); administracion.add(corte); administracion.add(configuracion);
+        usuarios.addActionListener(e -> navegar(Modulo.USUARIOS));
+        administracion.add(funciones); administracion.add(corte); administracion.add(configuracion); administracion.add(usuarios);
         barra.add(administracion, 0); setJMenuBar(barra);
         barra.setBackground(views.estilos.Tema.SUPERFICIE);
         barra.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, views.estilos.Tema.BORDE));
-        for (javax.swing.JMenuItem item : java.util.List.of(administracion, funciones, corte, configuracion)) {
+        for (javax.swing.JMenuItem item : java.util.List.of(administracion, funciones, corte, configuracion, usuarios)) {
             item.setFont(views.estilos.Tema.CUERPO); item.setForeground(views.estilos.Tema.TEXTO);
             item.setBackground(views.estilos.Tema.SUPERFICIE);
         }
         new controlllers.DashboardController(btnMenuSalas, btnMenuPeliculas, btnCorteCaja, btnVenderTickets,
-                btnMenuFunciones, btnConfiguracion, funciones, corte, configuracion, administracion).aplicarPermisosPorRol();
+                btnMenuFunciones, btnConfiguracion, btnUsuarios, funciones, corte, configuracion, usuarios, administracion).aplicarPermisosPorRol();
         btnMenuCartelera.setEnabled(btnVenderTickets.isEnabled());
         javax.swing.SwingUtilities.invokeLater(() -> {
             if (isDisplayable()) navegar(config.Sesion.esAdministrador() ? Modulo.PELICULAS : Modulo.TAQUILLA);
@@ -59,7 +64,7 @@ public class MDI extends javax.swing.JFrame {
 
     private void navegar(Modulo modulo) {
         utils.Tareas.validar(this, () -> {
-            if (modulo == Modulo.TAQUILLA || modulo == Modulo.CARTELERA) config.Sesion.exigirVenta();
+            if (modulo.esOperacion()) config.Sesion.exigirVenta();
             else config.Sesion.exigirAdministrador();
             barraLateral.seleccionar(modulo);
             mostrarModulo(modulo);
@@ -74,7 +79,7 @@ public class MDI extends javax.swing.JFrame {
         botones.put(Modulo.CARTELERA, btnMenuCartelera); botones.put(Modulo.PELICULAS, btnMenuPeliculas);
         botones.put(Modulo.SALAS, btnMenuSalas); botones.put(Modulo.FUNCIONES, btnMenuFunciones);
         botones.put(Modulo.TAQUILLA, btnVenderTickets); botones.put(Modulo.CORTE_CAJA, btnCorteCaja);
-        botones.put(Modulo.CONFIGURACION, btnConfiguracion);
+        botones.put(Modulo.CONFIGURACION, btnConfiguracion); botones.put(Modulo.USUARIOS, btnUsuarios);
         getContentPane().remove(jPanel1);
         barraLateral = new BarraLateral(botones, btnCerrarSesion, config.Sesion.exigirSesion());
         getContentPane().add(barraLateral, java.awt.BorderLayout.LINE_START);
@@ -128,6 +133,11 @@ public class MDI extends javax.swing.JFrame {
                 mostrarVistaCentral(vista);
                 new controlllers.ConfiguracionController(vista);
             }
+            case USUARIOS -> {
+                UsuariosView vista = new UsuariosView();
+                mostrarVistaCentral(vista);
+                new controlllers.UsuariosController(vista);
+            }
         }
     }
 
@@ -175,6 +185,7 @@ public class MDI extends javax.swing.JFrame {
         btnVenderTickets = new javax.swing.JButton();
         btnCorteCaja = new javax.swing.JButton();
         btnConfiguracion = new javax.swing.JButton();
+        btnUsuarios = new javax.swing.JButton();
         btnCerrarSesion = new javax.swing.JButton();
         panelCentral = new javax.swing.JPanel();
 
@@ -201,6 +212,9 @@ public class MDI extends javax.swing.JFrame {
         btnConfiguracion.setText("Configuración");
         btnConfiguracion.addActionListener(this::btnConfiguracionActionPerformed);
 
+        btnUsuarios.setText("Usuarios");
+        btnUsuarios.addActionListener(this::btnUsuariosActionPerformed);
+
         btnCerrarSesion.setText("Cerrar Sesión");
         btnCerrarSesion.addActionListener(this::btnCerrarSesionActionPerformed);
 
@@ -218,6 +232,7 @@ public class MDI extends javax.swing.JFrame {
                     .addComponent(btnVenderTickets, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnCorteCaja, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnConfiguracion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnUsuarios, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnCerrarSesion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -238,6 +253,8 @@ public class MDI extends javax.swing.JFrame {
                 .addComponent(btnCorteCaja)
                 .addGap(24, 24, 24)
                 .addComponent(btnConfiguracion)
+                .addGap(24, 24, 24)
+                .addComponent(btnUsuarios)
                 .addGap(24, 24, 24)
                 .addComponent(btnCerrarSesion)
                 .addContainerGap(36, Short.MAX_VALUE))
@@ -278,6 +295,10 @@ public class MDI extends javax.swing.JFrame {
         navegar(Modulo.CONFIGURACION);
     }//GEN-LAST:event_btnConfiguracionActionPerformed
 
+    private void btnUsuariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUsuariosActionPerformed
+        navegar(Modulo.USUARIOS);
+    }//GEN-LAST:event_btnUsuariosActionPerformed
+
     private void btnCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCerrarSesionActionPerformed
         int confirmacion = javax.swing.JOptionPane.showConfirmDialog(this,
                 "¿Estás seguro que deseas cerrar sesión?", "Cerrar Sesión", javax.swing.JOptionPane.YES_NO_OPTION);
@@ -300,6 +321,7 @@ public class MDI extends javax.swing.JFrame {
     private javax.swing.JButton btnVenderTickets;
     private javax.swing.JButton btnCorteCaja;
     private javax.swing.JButton btnConfiguracion;
+    private javax.swing.JButton btnUsuarios;
     private javax.swing.JButton btnCerrarSesion;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel panelCentral;

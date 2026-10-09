@@ -39,12 +39,15 @@ class PostgresIntegrationTest {
                 CREATE TEMP TABLE funcion(id_funcion serial PRIMARY KEY,id_pelicula int NOT NULL REFERENCES pg_temp.pelicula,
                     id_sala int NOT NULL REFERENCES pg_temp.sala,fecha_proyeccion date NOT NULL,hora_inicio time NOT NULL,
                     hora_fin time NOT NULL,estado estado_funcion);
-                CREATE TEMP TABLE usuario(id_usuario serial PRIMARY KEY,nombre text,rol text,estado estado_usuario);
+                CREATE TEMP TABLE usuario(id_usuario serial PRIMARY KEY,rol text,nombre text,username text,password_hash text,
+                    dui text,email text,telefono text,fecha_nacimiento date,genero text,direccion text,fecha_contratacion date,
+                    imagen_url text,estado estado_usuario);
                 CREATE TEMP TABLE ticket(id_ticket serial PRIMARY KEY,id_funcion int NOT NULL REFERENCES pg_temp.funcion,
                     id_asiento int NOT NULL REFERENCES pg_temp.asiento,id_usuario int NOT NULL REFERENCES pg_temp.usuario,
                     monto numeric NOT NULL,fecha_hora_compra timestamp DEFAULT LOCALTIMESTAMP,UNIQUE(id_funcion,id_asiento));
                 CREATE TEMP TABLE configuracion_cine(id int PRIMARY KEY CHECK(id=1),precio_boleto numeric(8,2) CHECK(precio_boleto>0));
                 INSERT INTO usuario(id_usuario,nombre,rol,estado) VALUES (1,'Administrador prueba','Administrador','Activo');
+                SELECT setval(pg_get_serial_sequence('usuario','id_usuario'),100);
                 INSERT INTO configuracion_cine VALUES (1,4.50);
                 """);
             try (ResultSet rs = s.executeQuery("SELECT n.nspname FROM pg_class t JOIN pg_namespace n ON t.relnamespace=n.oid WHERE t.oid='sala'::regclass")) {
@@ -238,5 +241,151 @@ class PostgresIntegrationTest {
         assertEquals(2,reporte.cajeros().size()); assertEquals(2,reporte.tickets());
         assertThrows(AccesoDatosException.class, () -> new PeliculaDAO(c).eliminarPelicula(p.getIdPelicula())); c.rollback();
         assertFalse(new PeliculaDAO(c).obtenerTodas().isEmpty());
+    }
+
+    /** Solo consulta el catálogo: comprueba que la tabla real tiene los campos que usa el módulo de usuarios. */
+    @Test void tablaRealDeUsuarioTieneElRolYLosCamposDelModulo() throws Exception {
+        java.util.Map<String, String> columnas = new java.util.HashMap<>();
+        try (PreparedStatement ps = c.prepareStatement("SELECT column_name,udt_name FROM information_schema.columns "
+                + "WHERE table_schema='public' AND table_name='usuario'");
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) columnas.put(rs.getString(1), rs.getString(2));
+        }
+        for (String columna : List.of("id_usuario", "rol", "nombre", "username", "password_hash", "dui", "email", "telefono",
+                "fecha_nacimiento", "genero", "direccion", "fecha_contratacion", "imagen_url", "estado")) {
+            assertTrue(columnas.containsKey(columna), "public.usuario no tiene la columna " + columna + ": " + columnas);
+        }
+        assertEquals("estado_usuario", columnas.get("estado"));
+        try (Statement st = c.createStatement();
+             ResultSet rs = st.executeQuery("SELECT array_agg(e::text) FROM unnest(enum_range(NULL::estado_usuario)) e")) {
+            rs.next(); assertTrue(List.of((Object[]) rs.getArray(1).getArray()).contains("Activo"));
+        }
+    }
+
+    private final List<String> registradosEnAuth = new java.util.ArrayList<>();
+    private UsuarioService usuarios() {
+        return new UsuarioService(conexiones, (email, clave) -> { registradosEnAuth.add(email); return true; });
+    }
+    private static Usuario nuevoUsuario(String username, String rol) {
+        Usuario u = new Usuario(); u.setNombre("Persona " + username); u.setUsername(username);
+        u.setEmail(username + "@cine.com"); u.setRol(rol); u.setEstado("Activo");
+        return u;
+    }
+    private static char[] clave() { return "Clave1234".toCharArray(); }
+    /** Estado sin acceso según la enumeración real; no se presupone su nombre. */
+    private String inactivo() throws SQLException {
+        try (Statement st = c.createStatement();
+             ResultSet rs = st.executeQuery("SELECT e::text FROM unnest(enum_range(NULL::estado_usuario)) e WHERE e::text<>'Activo' LIMIT 1")) {
+            assertTrue(rs.next(), "estado_usuario necesita un estado distinto de Activo");
+            return rs.getString(1);
+        }
+    }
+
+    @Test void crudDeUsuariosGuardaEnUnaTransaccionConAuthYRechazaDuplicados() throws Exception {
+        c.setAutoCommit(false);
+        UsuarioService servicio = usuarios();
+        Usuario cajero = nuevoUsuario("cajero1", "Cajero"); cajero.setDui("01234567-8");
+        cajero.setFechaNacimiento(Date.valueOf("1999-05-10")); cajero.setGenero("Femenino");
+        UsuarioService.Creado creado = servicio.crear(cajero, clave(), clave());
+        assertTrue(creado.idUsuario() > 1); assertTrue(creado.requiereConfirmacion());
+        assertEquals(List.of("cajero1@cine.com"), registradosEnAuth);
+        try (PreparedStatement ps = c.prepareStatement("SELECT password_hash,estado::text,rol FROM usuario WHERE id_usuario=?")) {
+            ps.setInt(1, creado.idUsuario());
+            try (ResultSet rs = ps.executeQuery()) {
+                assertTrue(rs.next());
+                assertTrue(org.mindrot.jbcrypt.BCrypt.checkpw("Clave1234", rs.getString(1)));
+                assertEquals("Activo", rs.getString(2)); assertEquals("Cajero", rs.getString(3));
+            }
+        }
+        UsuarioService.Catalogo catalogo = servicio.cargar();
+        assertEquals(2, catalogo.usuarios().size());
+        assertTrue(catalogo.usuarios().stream().allMatch(u -> u.getPasswordHash() == null));
+        assertEquals(List.of("Cajero", "Administrador"), catalogo.roles());
+        assertTrue(catalogo.estados().contains("Activo"));
+
+        Usuario mismoUsuario = nuevoUsuario("CAJERO1", "Cajero"); mismoUsuario.setEmail("otro@cine.com");
+        Usuario mismoCorreo = nuevoUsuario("otro", "Cajero"); mismoCorreo.setEmail("Cajero1@Cine.com");
+        Usuario mismoDui = nuevoUsuario("tercero", "Cajero"); mismoDui.setDui("01234567-8");
+        for (Usuario repetido : List.of(mismoUsuario, mismoCorreo, mismoDui)) {
+            assertThrows(IllegalArgumentException.class, () -> servicio.crear(repetido, clave(), clave()), repetido.getUsername());
+        }
+        // Si Supabase rechaza la cuenta, la fila tampoco queda en la tabla Usuario.
+        UsuarioService rechazado = new UsuarioService(conexiones, (email, clave) -> {
+            throw new IllegalArgumentException("El correo ya tiene una cuenta en Supabase Auth. Usa otro correo.");
+        });
+        assertThrows(IllegalArgumentException.class, () -> rechazado.crear(nuevoUsuario("sinauth", "Cajero"), clave(), clave()));
+        assertEquals(2, new UsuarioDAO(c).listar().size());
+        assertEquals(1, registradosEnAuth.size());
+
+        cajero.setNombre("Cajera actualizada"); cajero.setEmail("cambiado@cine.com"); cajero.setEstado(inactivo());
+        assertTrue(servicio.actualizar(cajero));
+        Usuario guardado = new UsuarioDAO(c).listar().stream().filter(u -> u.getIdUsuario() == creado.idUsuario()).findFirst().orElseThrow();
+        assertEquals("Cajera actualizada", guardado.getNombre()); assertEquals(inactivo(), guardado.getEstado());
+        assertEquals("cajero1@cine.com", guardado.getEmail(), "El correo de Supabase Auth no se modifica");
+        assertEquals(Date.valueOf("1999-05-10"), guardado.getFechaNacimiento()); assertEquals("Femenino", guardado.getGenero());
+        Usuario inexistente = nuevoUsuario("fantasma", "Cajero"); inexistente.setIdUsuario(999999);
+        assertFalse(servicio.actualizar(inexistente));
+        assertFalse(servicio.eliminar(999999));
+    }
+
+    @Test void siempreQuedaUnAdministradorActivoYNoSeBorranUsuariosConVentas() throws Exception {
+        c.setAutoCommit(false);
+        UsuarioService servicio = usuarios();
+        Usuario yo = new UsuarioDAO(c).bloquear(1); c.commit();
+        yo.setUsername("admin"); yo.setEmail("admin@cine.com");
+        yo.setRol("Cajero");
+        assertThrows(IllegalStateException.class, () -> servicio.actualizar(yo));
+        yo.setRol("Administrador"); yo.setEstado(inactivo());
+        assertThrows(IllegalStateException.class, () -> servicio.actualizar(yo));
+        assertThrows(IllegalStateException.class, () -> servicio.eliminar(1));
+
+        Usuario otro = nuevoUsuario("admin2", "Administrador");
+        servicio.crear(otro, clave(), clave());
+        otro.setRol("Cajero");
+        assertTrue(servicio.actualizar(otro), "Puede cambiar el rol porque el administrador actual sigue activo");
+        otro.setRol("Administrador"); assertTrue(servicio.actualizar(otro));
+        // La sesión pertenece a un administrador que otra caja desactivó: admin2 es el único activo.
+        try (PreparedStatement ps = c.prepareStatement("UPDATE usuario SET estado=?::estado_usuario WHERE id_usuario=1")) {
+            ps.setString(1, inactivo()); ps.executeUpdate();
+        }
+        c.commit();
+        otro.setEstado(inactivo());
+        assertThrows(IllegalStateException.class, () -> servicio.actualizar(otro));
+        assertThrows(IllegalStateException.class, () -> servicio.eliminar(otro.getIdUsuario()));
+        try (Statement st = c.createStatement()) { st.executeUpdate("UPDATE usuario SET estado='Activo' WHERE id_usuario=1"); }
+        c.commit();
+
+        Usuario cajero = nuevoUsuario("cajero2", "Cajero");
+        servicio.crear(cajero, clave(), clave());
+        Pelicula p = pelicula(); Sala s = sala(); Funcion f = funcion(p, s, fecha, "18:00:00");
+        int asiento = new AsientoDAO(c).obtenerAsientosPorSala(s.getIdSala()).getFirst().getIdAsiento();
+        new TicketDAO(c).venderTicket(new Ticket(0, f.getIdFuncion(), asiento, cajero.getIdUsuario(), new BigDecimal("4.50"), null));
+        c.commit();
+        IllegalStateException conVentas = assertThrows(IllegalStateException.class, () -> servicio.eliminar(cajero.getIdUsuario()));
+        assertTrue(conVentas.getMessage().contains("Inactivo"));
+        assertTrue(servicio.eliminar(otro.getIdUsuario()));
+        assertEquals(List.of(1, cajero.getIdUsuario()), new UsuarioDAO(c).listar().stream().map(Usuario::getIdUsuario).sorted().toList());
+    }
+
+    @Test void rolYGeneroComoEnumeracionUsanLosValoresDeLaBaseDeDatos() throws Exception {
+        c.setAutoCommit(false);
+        try (Statement st = c.createStatement()) {
+            st.execute("CREATE TYPE pg_temp.rol_prueba AS ENUM ('Administrador','Cajero','Cliente')");
+            st.execute("CREATE TYPE pg_temp.genero_prueba AS ENUM ('F','M')");
+            st.execute("ALTER TABLE usuario ALTER COLUMN rol TYPE pg_temp.rol_prueba USING rol::pg_temp.rol_prueba");
+            st.execute("ALTER TABLE usuario ALTER COLUMN genero TYPE pg_temp.genero_prueba USING genero::pg_temp.genero_prueba");
+        }
+        c.commit();
+        UsuarioService servicio = usuarios();
+        UsuarioService.Catalogo catalogo = servicio.cargar();
+        assertEquals(List.of("Administrador", "Cajero"), catalogo.roles(), "Se omiten los roles que el sistema no usa");
+        assertEquals(List.of("F", "M"), catalogo.generos());
+        Usuario cajero = nuevoUsuario("enum1", "Cajero"); cajero.setGenero("M");
+        servicio.crear(cajero, clave(), clave());
+        cajero.setRol("Administrador"); cajero.setGenero(null);
+        assertTrue(servicio.actualizar(cajero));
+        Usuario guardado = new UsuarioDAO(c).bloquear(cajero.getIdUsuario()); c.commit();
+        assertEquals("Administrador", guardado.getRol()); assertNull(guardado.getGenero());
+        assertEquals(1, new UsuarioDAO(c).contarAdministradoresActivos(1));
     }
 }

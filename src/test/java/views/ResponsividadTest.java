@@ -26,7 +26,7 @@ class ResponsividadTest {
     @Test void modulosMantienenControlesDentroDeSusPaneles() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             for (JPanel vista : List.of(new PeliculasView(),new TaquillaView(),new FuncionesView(),
-                    new ConfiguracionView(),new CorteCajaView(),new SalasView(),new CarteleraView())) {
+                    new ConfiguracionView(),new CorteCajaView(),new SalasView(),new CarteleraView(),new UsuariosView())) {
                 for (int ancho : new int[]{1280,800,480,800,1280}) {
                     vista.setSize(ancho,520);
                     for (int i=0;i<12;i++) distribuir(vista);

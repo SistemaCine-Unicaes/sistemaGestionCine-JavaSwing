@@ -28,6 +28,15 @@ class SwingIntegrationTest {
         return resultado;
     }
 
+    private static List<String> etiquetas(Component componente) {
+        List<String> resultado = new ArrayList<>();
+        if (componente instanceof JLabel etiqueta) resultado.add(etiqueta.getText());
+        if (componente instanceof Container contenedor) {
+            for (Component hijo : contenedor.getComponents()) resultado.addAll(etiquetas(hijo));
+        }
+        return resultado;
+    }
+
     @Test void loginTieneAccionYMDIReemplazaPanelesConPermisos() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             Login login = new Login();
@@ -43,15 +52,25 @@ class SwingIntegrationTest {
                 assertNull(primero.getParent()); assertNotNull(segundo.getParent());
                 assertInstanceOf(BorderLayout.class, segundo.getParent().getLayout());
                 assertEquals(1, segundo.getParent().getComponentCount());
-                assertFalse(mdi.getJMenuBar().getMenu(0).isEnabled());
+                // El menú Administración existe pero el cajero no lo ve.
+                JMenu administracion = mdi.getJMenuBar().getMenu(0);
+                assertEquals("Administración", administracion.getText());
+                assertFalse(administracion.isEnabled()); assertFalse(administracion.isVisible());
                 List<AbstractButton> botones = botones(mdi);
-                assertFalse(botones.stream().filter(b -> "Películas".equals(b.getText())).findFirst().orElseThrow().isEnabled());
                 assertTrue(botones.stream().filter(b -> "Venta de boletos".equals(b.getText())).findFirst().orElseThrow().isEnabled());
                 assertTrue(botones.stream().filter(b -> "Cartelera".equals(b.getText())).findFirst().orElseThrow().isEnabled());
-                for (String modulo : List.of("Funciones", "Corte de caja", "Configuración")) {
-                    assertFalse(botones.stream().filter(b -> b instanceof JButton && modulo.equals(b.getText()))
-                            .findFirst().orElseThrow().isEnabled());
+                for (String modulo : List.of("Películas", "Salas", "Funciones", "Corte de caja", "Configuración", "Usuarios")) {
+                    assertTrue(botones.stream().noneMatch(b -> modulo.equals(b.getText())), modulo + " no debe aparecer para el cajero");
                 }
+                assertTrue(etiquetas(mdi).stream().noneMatch("ADMINISTRACIÓN"::equals));
+                assertTrue(etiquetas(mdi).contains("OPERACIÓN"));
+                JMenu modulos = mdi.getJMenuBar().getMenu(1);
+                List<String> visibles = new ArrayList<>();
+                for (int i = 0; i < modulos.getItemCount(); i++) {
+                    JMenuItem item = modulos.getItem(i);
+                    if (item != null && item.isVisible()) visibles.add(item.getText());
+                }
+                assertEquals(List.of("Cartelera", "Venta de boletos", "Cerrar sesión"), visibles);
             } finally { mdi.dispose(); }
         });
     }
@@ -66,9 +85,9 @@ class SwingIntegrationTest {
             }
             MDIPrueba mdi = new MDIPrueba();
             try {
-                String[] etiquetas = {"Cartelera", "Películas", "Salas", "Funciones", "Venta de boletos", "Corte de caja", "Configuración"};
+                String[] etiquetas = {"Cartelera", "Películas", "Salas", "Funciones", "Venta de boletos", "Corte de caja", "Configuración", "Usuarios"};
                 MDI.Modulo[] modulos = {MDI.Modulo.CARTELERA, MDI.Modulo.PELICULAS, MDI.Modulo.SALAS, MDI.Modulo.FUNCIONES,
-                        MDI.Modulo.TAQUILLA, MDI.Modulo.CORTE_CAJA, MDI.Modulo.CONFIGURACION};
+                        MDI.Modulo.TAQUILLA, MDI.Modulo.CORTE_CAJA, MDI.Modulo.CONFIGURACION, MDI.Modulo.USUARIOS};
                 List<AbstractButton> controles = botones(mdi);
                 for (int i = 0; i < etiquetas.length; i++) {
                     String etiqueta = etiquetas[i];
@@ -81,9 +100,12 @@ class SwingIntegrationTest {
                     assertTrue(mdi.getTitle().contains(modulos[i].getTitulo()));
                 }
                 JMenu menu = mdi.getJMenuBar().getMenu(0);
+                assertTrue(menu.isVisible()); assertTrue(etiquetas(mdi).contains("ADMINISTRACIÓN"));
                 menu.getItem(0).doClick(); assertEquals(MDI.Modulo.FUNCIONES, mdi.ultimo);
                 menu.getItem(1).doClick(); assertEquals(MDI.Modulo.CORTE_CAJA, mdi.ultimo);
                 menu.getItem(2).doClick(); assertEquals(MDI.Modulo.CONFIGURACION, mdi.ultimo);
+                menu.getItem(3).doClick(); assertEquals(MDI.Modulo.USUARIOS, mdi.ultimo);
+                assertTrue(mdi.getTitle().contains("Usuarios"));
             } finally { mdi.dispose(); }
         });
     }
