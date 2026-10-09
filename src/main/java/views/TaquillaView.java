@@ -86,6 +86,7 @@ public class TaquillaView extends javax.swing.JPanel {
         lblEstado = views.estilos.Tema.mensaje("", views.estilos.Tema.SECUNDARIO);
         pnlResumen = new javax.swing.JPanel();
         pnlCabeceraResumen = new javax.swing.JPanel();
+        lblDisponibilidad = new javax.swing.JLabel();
         lblResumenTitulo = new javax.swing.JLabel();
         lblPelicula = new javax.swing.JLabel();
         pnlCuerpoResumen = new javax.swing.JPanel();
@@ -284,6 +285,12 @@ public class TaquillaView extends javax.swing.JPanel {
         pnlCabeceraResumen.setBorder(javax.swing.BorderFactory.createEmptyBorder(24, 24, 20, 24));
         pnlCabeceraResumen.setLayout(new javax.swing.BoxLayout(pnlCabeceraResumen, javax.swing.BoxLayout.PAGE_AXIS));
 
+        lblDisponibilidad.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        lblDisponibilidad.setForeground(new java.awt.Color(255, 255, 255));
+        lblDisponibilidad.setText("...");
+        lblDisponibilidad.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        pnlCabeceraResumen.add(lblDisponibilidad);
+
         lblResumenTitulo.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
         lblResumenTitulo.setForeground(new java.awt.Color(255, 165, 180));
         lblResumenTitulo.setText("RESUMEN DE COMPRA");
@@ -471,6 +478,10 @@ public class TaquillaView extends javax.swing.JPanel {
     public void setTotalPagar(String total) {
         lblTotal.setText(total);
     }
+    
+    public void setDisponibilidad(String texto) {
+        lblDisponibilidad.setText(texto);
+    }
 
     /** Actualiza la tarjeta de resumen; con {@code pelicula == null} muestra el estado vacío. */
     public void mostrarResumen(String pelicula, String fecha, String hora, String sala, int cantidad, String precio) {
@@ -553,6 +564,7 @@ public class TaquillaView extends javax.swing.JPanel {
     private javax.swing.JLabel lblBoletosTitulo;
     private javax.swing.JLabel lblDatosVenta;
     private javax.swing.JLabel lblDescripcion;
+    private javax.swing.JLabel lblDisponibilidad;
     private javax.swing.JLabel lblEstado;
     private javax.swing.JLabel lblFecha;
     private javax.swing.JLabel lblFechaTitulo;

@@ -109,6 +109,24 @@ public class TaquillaController {
                 f == null ? null : hora(f), f == null ? null : "Sala " + f.getIdSala(),
                 cantidad, precio == null ? null : "$" + precio.toPlainString());
         vista.habilitarContinuar(precio != null && f != null);
+
+        // LÓGICA AGREGADA PARA MOSTRAR DISPONIBILIDAD DE ASIENTOS
+        if (f != null) {
+            vista.setDisponibilidad("Calculando...");
+            Tareas.ejecutar(vista, () -> {
+                try (Connection c = Conexion.getConexion()) {
+                    List<Asiento> asientos = new AsientoDAO(c).obtenerAsientosPorSala(f.getIdSala());
+                    Set<Integer> vendidos = new TicketDAO(c).obtenerTicketsPorFuncion(f.getIdFuncion()).stream()
+                            .map(Ticket::getIdAsiento).collect(Collectors.toSet());
+                    return new Mapa(asientos, vendidos);
+                }
+            }, mapa -> {
+                long libres = mapa.asientos().stream().filter(a -> "Disponible".equals(a.getEstado()) && !mapa.vendidos().contains(a.getIdAsiento())).count();
+                vista.setDisponibilidad(libres + " asientos disponibles");
+            });
+        } else {
+            vista.setDisponibilidad(" ");
+        }
     }
 
     private static String hora(Funcion f) {
