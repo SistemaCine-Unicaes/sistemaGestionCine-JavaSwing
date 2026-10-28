@@ -5,6 +5,7 @@ import javax.swing.*;
 import views.estilos.Tema;
 
 public class PeliculasView extends javax.swing.JPanel {
+    public static final int COL_REPORTE = 6;
     private final JTextField txtFechaEstreno = Tema.campo("", 12);
     private final JTextField txtImagenUrl = Tema.campo("", 24);
     private final JComboBox<String> cbTipoEstreno = new JComboBox<>(new String[]{"Sin especificar", "MUNDIAL", "ESTANDAR"});
@@ -13,11 +14,44 @@ public class PeliculasView extends javax.swing.JPanel {
     private final JLabel lblMensaje = Tema.mensaje("Completa los datos para agregar una película.", Tema.SECUNDARIO);
     private final JLabel lblCantidad = Tema.texto("Cargando películas…", Tema.CUERPO, Tema.SECUNDARIO);
     private final JPanel pnlPoster = new JPanel(new BorderLayout());
+    private java.awt.event.ActionListener reporteListener;
 
     public PeliculasView() {
         initComponents();
         cbEstado.addItem("ARCHIVADA");
+        configurarColumnaReporte();
         configurarVista();
+    }
+
+    private void configurarColumnaReporte() {
+        tblPeliculas.getColumnModel().getColumn(COL_REPORTE).setPreferredWidth(120);
+        tblPeliculas.getColumnModel().getColumn(COL_REPORTE).setCellRenderer((tabla, valor, seleccionado, foco, fila, columna) -> {
+            JButton boton = Tema.botonSecundario("Ver reporte");
+            boton.setMargin(new Insets(4, 8, 4, 8));
+            return boton;
+        });
+        tblPeliculas.getColumnModel().getColumn(COL_REPORTE).setCellEditor(new ReporteEditor());
+    }
+
+    public void addReporteListener(java.awt.event.ActionListener listener) { reporteListener = listener; }
+
+    private final class ReporteEditor extends javax.swing.AbstractCellEditor implements javax.swing.table.TableCellEditor {
+        private final JButton boton = Tema.botonSecundario("Ver reporte");
+        private int filaModelo;
+        ReporteEditor() {
+            boton.setMargin(new Insets(4, 8, 4, 8));
+            boton.addActionListener(e -> {
+                fireEditingStopped();
+                if (reporteListener != null) reporteListener.actionPerformed(new java.awt.event.ActionEvent(
+                        tblPeliculas, java.awt.event.ActionEvent.ACTION_PERFORMED, Integer.toString(filaModelo)));
+            });
+        }
+        @Override public java.awt.Component getTableCellEditorComponent(JTable tabla, Object valor,
+                boolean seleccionado, int fila, int columna) {
+            filaModelo = tabla.convertRowIndexToModel(fila);
+            return boton;
+        }
+        @Override public Object getCellEditorValue() { return "Ver reporte"; }
     }
 
     /** Se monta después de initComponents para conservar los controles y eventos del formulario NetBeans. */
@@ -234,11 +268,11 @@ public class PeliculasView extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Título", "Sinopsis", "Duración", "Género", "Director", "Estado"
+                "Título", "Sinopsis", "Duración", "Género", "Director", "Estado", "Reporte"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
+                false, false, false, false, false, false, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
