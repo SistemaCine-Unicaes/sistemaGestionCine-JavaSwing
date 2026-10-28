@@ -3,6 +3,7 @@ package controlllers;
 import config.Conexion;
 import config.Sesion;
 import dao.PeliculaDAO;
+import dao.ReportePeliculaDAO;
 import java.sql.Connection;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -13,6 +14,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import models.Pelicula;
+import utils.ReportePeliculaPDF;
 import utils.Tareas;
 import views.PeliculasView;
 
@@ -40,6 +42,7 @@ public class PeliculasController {
         vista.addLimpiarListener(e -> limpiar());
         vista.addEliminarListener(e -> Tareas.validar(vista, this::eliminar));
         vista.addRecargarListener(e -> Tareas.validar(vista, this::cargar));
+        vista.addReporteListener(e -> Tareas.validar(vista, () -> generarReporte(Integer.parseInt(e.getActionCommand()))));
         cargar();
     }
 
@@ -74,9 +77,47 @@ public class PeliculasController {
             peliculas = lista;
             DefaultTableModel tabla = (DefaultTableModel) vista.getTablaPeliculas().getModel();
             tabla.setRowCount(0);
-            for (Pelicula p : lista) tabla.addRow(new Object[]{p.getNombre(),p.getSinopsis(),p.getDuracion(),p.getGenero(),p.getDirector(),p.getEstado()});
+            for (Pelicula p : lista) tabla.addRow(new Object[]{p.getNombre(),p.getSinopsis(),p.getDuracion(),p.getGenero(),p.getDirector(),p.getEstado(),"Ver reporte"});
             filtrar();
         });
+    }
+
+    private void generarReporte(int filaModelo) {
+        Sesion.exigirAdministrador();
+        if (filaModelo < 0 || filaModelo >= peliculas.size()) throw new IllegalArgumentException("Actualiza el listado e inténtalo de nuevo.");
+        Pelicula pelicula = peliculas.get(filaModelo);
+        Tareas.ejecutar(vista, () -> {
+            Sesion.exigirAdministrador();
+            try (Connection c = Conexion.getConexion()) { return new ReportePeliculaDAO(c).obtener(pelicula.getIdPelicula()); }
+        }, reporte -> {
+            if (reporte == null) { Tareas.error(vista, "La película ya no existe. Actualiza el listado."); return; }
+            javax.swing.JFileChooser selector = new javax.swing.JFileChooser();
+            selector.setDialogTitle("Guardar reporte de " + reporte.pelicula().getNombre());
+            selector.setSelectedFile(new java.io.File(nombreArchivo(reporte.pelicula().getNombre())));
+            if (selector.showSaveDialog(vista) != javax.swing.JFileChooser.APPROVE_OPTION) return;
+            java.nio.file.Path archivo = selector.getSelectedFile().toPath();
+            if (!archivo.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".pdf")) {
+                archivo = archivo.resolveSibling(archivo.getFileName() + ".pdf");
+            }
+            if (java.nio.file.Files.exists(archivo)
+                    && javax.swing.JOptionPane.showConfirmDialog(vista, "El archivo ya existe. ¿Deseas reemplazarlo?",
+                            "Confirmar reemplazo", javax.swing.JOptionPane.YES_NO_OPTION) != javax.swing.JOptionPane.YES_OPTION) return;
+            java.nio.file.Path destino = archivo;
+            Tareas.ejecutar(vista, () -> {
+                ReportePeliculaPDF.generar(reporte, destino);
+                return destino;
+            }, generado -> {
+                vista.mostrarMensaje("Reporte PDF guardado en " + generado.toAbsolutePath(), false);
+                javax.swing.JOptionPane.showMessageDialog(vista, "Reporte generado correctamente:\n" + generado.toAbsolutePath(),
+                        "Reporte de película", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            });
+        });
+    }
+
+    private static String nombreArchivo(String titulo) {
+        String seguro = titulo == null ? "pelicula" : titulo.trim().replaceAll("[^\\p{L}\\p{N}._-]+", "_");
+        if (seguro.isBlank()) seguro = "pelicula";
+        return "reporte_" + seguro + ".pdf";
     }
 
     private void guardar(boolean actualizar) {
