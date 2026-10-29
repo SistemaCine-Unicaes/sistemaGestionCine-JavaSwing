@@ -25,22 +25,39 @@ public final class ConfiguracionController {
         Sesion.exigirAdministrador();
         vista.habilitarEdicion(false);
         Tareas.ejecutar(vista, () -> {
-            try (Connection c = Conexion.getConexion()) { return new ConfiguracionDAO(c).obtenerPrecio(); }
-        }, precio -> {
-            vista.setPrecio(precio == null ? "" : precio.toPlainString());
+            try (Connection c = Conexion.getConexion()) { 
+                return new ConfiguracionDAO(c).obtenerPrecios(); 
+            }
+        }, precios -> {
+            if (precios != null) {
+                vista.setPrecioAdulto(precios.adulto() == null ? "" : precios.adulto().toPlainString());
+                vista.setPrecioNino(precios.nino() == null ? "" : precios.nino().toPlainString());
+                vista.setPrecioAdultoMayor(precios.adultoMayor() == null ? "" : precios.adultoMayor().toPlainString());
+            } else {
+                vista.setPrecioAdulto("");
+                vista.setPrecioNino("");
+                vista.setPrecioAdultoMayor("");
+            }
             vista.habilitarEdicion(true);
         });
     }
 
     private void guardar() {
         Sesion.exigirAdministrador();
-        BigDecimal precio = Configuracion.precio(vista.getPrecio());
+        BigDecimal adulto = Configuracion.precio(vista.getPrecioAdulto());
+        BigDecimal nino = Configuracion.precio(vista.getPrecioNino());
+        BigDecimal adultoMayor = Configuracion.precio(vista.getPrecioAdultoMayor());
+
         Tareas.ejecutar(vista, () -> {
-            try (Connection c = Conexion.getConexion()) { new ConfiguracionDAO(c).guardarPrecio(precio); }
-            return precio;
-        }, guardado -> {
-            vista.setPrecio(guardado.toPlainString());
-            JOptionPane.showMessageDialog(vista, "Precio guardado. Se aplicará a las nuevas ventas.");
+            try (Connection c = Conexion.getConexion()) { 
+                new ConfiguracionDAO(c).guardarPrecios(adulto, nino, adultoMayor); 
+            }
+            return new ConfiguracionDAO.Precios(adulto, nino, adultoMayor);
+        }, guardados -> {
+            vista.setPrecioAdulto(guardados.adulto().toPlainString());
+            vista.setPrecioNino(guardados.nino().toPlainString());
+            vista.setPrecioAdultoMayor(guardados.adultoMayor().toPlainString());
+            JOptionPane.showMessageDialog(vista, "Precios guardados exitosamente. Se aplicarán a las nuevas ventas.");
         });
     }
 }

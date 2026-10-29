@@ -14,8 +14,12 @@ public class TicketReciboView extends javax.swing.JDialog {
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TicketReciboView.class.getName());
 
     /** Una línea del recibo: un boleto por asiento. */
-    public record Linea(int ticket, String asiento, String monto) {}
-
+        public record Linea(int ticket, String asiento, String monto, String tipo) {
+        // Constructor de compatibilidad (por si se llama sin tipo)
+        public Linea(int ticket, String asiento, String monto) {
+            this(ticket, asiento, monto, "General");
+        }
+    }
     /** Todo lo que se imprime en el boleto, ya formateado para mostrar. */
     public record Datos(String pelicula, String fecha, String hora, int sala, int funcion,
             String cajero, String compra, List<Linea> lineas, String total) {
@@ -29,7 +33,7 @@ public class TicketReciboView extends javax.swing.JDialog {
             texto.append("Fecha: ").append(fecha).append(" · Hora: ").append(hora).append('\n');
             texto.append("Cajero: ").append(cajero).append("\n\n");
             for (Linea l : lineas) texto.append("Ticket #").append(l.ticket()).append("  Asiento ").append(l.asiento())
-                    .append("  $").append(l.monto()).append('\n');
+                    .append(" (").append(l.tipo()).append(")").append("  $").append(l.monto()).append('\n');
             texto.append("\nCompra: ").append(compra).append('\n');
             return texto.append("TOTAL: $").append(total).append('\n').toString();
         }
@@ -67,7 +71,8 @@ public class TicketReciboView extends javax.swing.JDialog {
         pnlLineas.removeAll();
         for (Linea l : datos.lineas()) {
             pnlAsientos.add(ficha(l.asiento()));
-            pnlLineas.add(renglon(Tema.texto("Ticket #" + l.ticket() + "  ·  Asiento " + l.asiento(), Tema.CUERPO, Tema.SECUNDARIO),
+            String etiqueta = "Ticket #" + l.ticket() + " · Asiento " + l.asiento() + " (" + l.tipo() + ")";
+            pnlLineas.add(renglon(Tema.texto(etiqueta, Tema.CUERPO, Tema.SECUNDARIO),
                     Tema.texto("$" + l.monto(), Tema.CUERPO, Tema.TEXTO)));
         }
         lblTotal.setText("$" + datos.total());

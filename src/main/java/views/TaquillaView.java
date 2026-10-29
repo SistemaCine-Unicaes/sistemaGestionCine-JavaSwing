@@ -57,10 +57,19 @@ public class TaquillaView extends javax.swing.JPanel {
         pnlPasoCampos3 = new javax.swing.JPanel();
         lblPaso3 = new javax.swing.JLabel();
         lblAyuda3 = new javax.swing.JLabel();
-        spnCantidad = new javax.swing.JSpinner();
+        spnAdulto = new javax.swing.JSpinner();
+        pnlPasoCampos4 = new javax.swing.JPanel();
+        lblPaso4 = new javax.swing.JLabel();
+        lblAyuda4 = new javax.swing.JLabel();
+        spnNino = new javax.swing.JSpinner();
+        pnlPasoCampos5 = new javax.swing.JPanel();
+        lblPaso6 = new javax.swing.JLabel();
+        lblAyuda5 = new javax.swing.JLabel();
+        spnAdultoMayor = new javax.swing.JSpinner();
         lblEstado = views.estilos.Tema.mensaje("", views.estilos.Tema.SECUNDARIO);
         pnlResumen = new javax.swing.JPanel();
         pnlCabeceraResumen = new javax.swing.JPanel();
+        lblDisponibilidad = new javax.swing.JLabel();
         lblResumenTitulo = new javax.swing.JLabel();
         lblPelicula = new javax.swing.JLabel();
         pnlCuerpoResumen = new javax.swing.JPanel();
@@ -207,9 +216,9 @@ public class TaquillaView extends javax.swing.JPanel {
 
         pnlPasos.add(pnlPaso2);
 
-        pnlPaso3.setOpaque(false);
         pnlPaso3.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 24, 0));
         pnlPaso3.setAlignmentX(0.0F);
+        pnlPaso3.setOpaque(false);
         pnlPaso3.setLayout(new java.awt.BorderLayout(16, 0));
 
         pnlCirculo3.setOpaque(false);
@@ -228,27 +237,76 @@ public class TaquillaView extends javax.swing.JPanel {
 
         lblAyuda3.setFont(new java.awt.Font("SansSerif", 0, 13)); // NOI18N
         lblAyuda3.setForeground(new java.awt.Color(88, 101, 121));
-        lblAyuda3.setText("Un asiento por boleto.");
+        lblAyuda3.setText("Adulto");
         lblAyuda3.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 8, 0));
         pnlPasoCampos3.add(lblAyuda3);
 
-        spnCantidad.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
-        spnCantidad.setModel(new javax.swing.SpinnerNumberModel(1, 1, null, 1));
-        spnCantidad.setMaximumSize(new java.awt.Dimension(140, 40));
-        spnCantidad.setPreferredSize(new java.awt.Dimension(140, 40));
-        spnCantidad.setAlignmentX(0.0F);
-        pnlPasoCampos3.add(spnCantidad);
+        spnAdulto.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        spnAdulto.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        spnAdulto.setAlignmentX(0.0F);
+        spnAdulto.setMaximumSize(new java.awt.Dimension(140, 40));
+        spnAdulto.setPreferredSize(new java.awt.Dimension(140, 40));
+        spnAdulto.setVerifyInputWhenFocusTarget(false);
+        pnlPasoCampos3.add(spnAdulto);
+
+        pnlPasoCampos4.setOpaque(false);
+        pnlPasoCampos4.setLayout(new javax.swing.BoxLayout(pnlPasoCampos4, javax.swing.BoxLayout.PAGE_AXIS));
+
+        lblPaso4.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblPaso4.setForeground(new java.awt.Color(24, 34, 53));
+        lblPaso4.setText("CANTIDAD DE BOLETOS");
+        lblPaso4.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 4, 0));
+        pnlPasoCampos4.add(lblPaso4);
+
+        lblAyuda4.setFont(new java.awt.Font("SansSerif", 0, 13)); // NOI18N
+        lblAyuda4.setForeground(new java.awt.Color(88, 101, 121));
+        lblAyuda4.setText("Niños");
+        lblAyuda4.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        pnlPasoCampos4.add(lblAyuda4);
+
+        spnNino.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        spnNino.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        spnNino.setAlignmentX(0.0F);
+        spnNino.setMaximumSize(new java.awt.Dimension(140, 40));
+        spnNino.setPreferredSize(new java.awt.Dimension(140, 40));
+        pnlPasoCampos4.add(spnNino);
+
+        pnlPasoCampos3.add(pnlPasoCampos4);
+
+        pnlPasoCampos5.setOpaque(false);
+        pnlPasoCampos5.setLayout(new javax.swing.BoxLayout(pnlPasoCampos5, javax.swing.BoxLayout.PAGE_AXIS));
+
+        lblPaso6.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
+        lblPaso6.setForeground(new java.awt.Color(24, 34, 53));
+        lblPaso6.setText("CANTIDAD DE BOLETOS");
+        lblPaso6.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 4, 0));
+        pnlPasoCampos5.add(lblPaso6);
+
+        lblAyuda5.setFont(new java.awt.Font("SansSerif", 0, 13)); // NOI18N
+        lblAyuda5.setForeground(new java.awt.Color(88, 101, 121));
+        lblAyuda5.setText("Adulto Mayor");
+        lblAyuda5.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        pnlPasoCampos5.add(lblAyuda5);
+
+        spnAdultoMayor.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        spnAdultoMayor.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        spnAdultoMayor.setAlignmentX(0.0F);
+        spnAdultoMayor.setMaximumSize(new java.awt.Dimension(140, 40));
+        spnAdultoMayor.setPreferredSize(new java.awt.Dimension(140, 40));
+        pnlPasoCampos5.add(spnAdultoMayor);
+
+        pnlPasoCampos3.add(pnlPasoCampos5);
 
         pnlPaso3.add(pnlPasoCampos3, java.awt.BorderLayout.CENTER);
 
         pnlPasos.add(pnlPaso3);
 
+        pnlSeleccion.add(pnlPasos, java.awt.BorderLayout.NORTH);
+
         lblEstado.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
         lblEstado.setForeground(new java.awt.Color(88, 101, 121));
         lblEstado.setText("Elige una película y un horario para ver el resumen.");
-        pnlPasos.add(lblEstado);
-
-        pnlSeleccion.add(pnlPasos, java.awt.BorderLayout.NORTH);
+        pnlSeleccion.add(lblEstado, java.awt.BorderLayout.PAGE_END);
 
         pnlCuerpo.add(pnlSeleccion);
 
@@ -258,6 +316,12 @@ public class TaquillaView extends javax.swing.JPanel {
         pnlCabeceraResumen.setBackground(new java.awt.Color(24, 34, 53));
         pnlCabeceraResumen.setBorder(javax.swing.BorderFactory.createEmptyBorder(24, 24, 20, 24));
         pnlCabeceraResumen.setLayout(new javax.swing.BoxLayout(pnlCabeceraResumen, javax.swing.BoxLayout.PAGE_AXIS));
+
+        lblDisponibilidad.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        lblDisponibilidad.setForeground(new java.awt.Color(255, 255, 255));
+        lblDisponibilidad.setText("...");
+        lblDisponibilidad.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        pnlCabeceraResumen.add(lblDisponibilidad);
 
         lblResumenTitulo.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
         lblResumenTitulo.setForeground(new java.awt.Color(255, 165, 180));
@@ -436,15 +500,19 @@ public class TaquillaView extends javax.swing.JPanel {
     }
 
     public int getCantidadBoletos() {
-        try { spnCantidad.commitEdit(); }
+        try { spnAdulto.commitEdit(); }
         catch (java.text.ParseException e) { throw new IllegalArgumentException("Ingresa una cantidad válida de boletos."); }
-        return (Integer) spnCantidad.getValue();
+        return (Integer) spnAdulto.getValue();
     }
 
     public void habilitarContinuar(boolean habilitado) { btnContinuar.setEnabled(habilitado); }
 
     public void setTotalPagar(String total) {
         lblTotal.setText(total);
+    }
+    
+    public void setDisponibilidad(String texto) {
+        lblDisponibilidad.setText(texto);
     }
 
     /** Actualiza la tarjeta de resumen; con {@code pelicula == null} muestra el estado vacío. */
@@ -482,7 +550,60 @@ public class TaquillaView extends javax.swing.JPanel {
     }
 
     public void addCantidadChangeListener(javax.swing.event.ChangeListener listener) {
-        spnCantidad.addChangeListener(listener);
+        spnAdulto.addChangeListener(listener);
+    }
+    
+    // --- LECTURA DE CANTIDADES INDIVIDUALES ---
+    public int getCantidadAdulto() {
+        try { spnAdulto.commitEdit(); }
+        catch (java.text.ParseException e) { throw new IllegalArgumentException("Ingresa una cantidad válida de adultos."); }
+        return Math.max(0, (Integer) spnAdulto.getValue());
+    }
+
+    public int getCantidadNino() {
+        try { spnNino.commitEdit(); }
+        catch (java.text.ParseException e) { throw new IllegalArgumentException("Ingresa una cantidad válida de niños."); }
+        return Math.max(0, (Integer) spnNino.getValue());
+    }
+
+    public int getCantidadAdultoMayor() {
+        try { spnAdultoMayor.commitEdit(); }
+        catch (java.text.ParseException e) { throw new IllegalArgumentException("Ingresa una cantidad válida de adultos mayores."); }
+        return Math.max(0, (Integer) spnAdultoMayor.getValue());
+    }
+
+    // Suma total requerida para el mapa de asientos
+    public int getCantidadTotalBoletos() {
+        return getCantidadAdulto() + getCantidadNino() + getCantidadAdultoMayor();
+    }
+
+    // Sobrecarga de mostrarResumen para soportar desglose concatenado
+    public void mostrarResumen(String pelicula, String fecha, String hora, String sala, String desgloseBoletos, String desglosePrecios) {
+        boolean vacio = pelicula == null;
+        lblPelicula.setText(vacio ? "Sin película seleccionada" : pelicula);
+        lblFecha.setText(vacio || fecha == null ? "—" : fecha);
+        lblHora.setText(vacio || hora == null ? "—" : hora);
+        lblSala.setText(vacio || sala == null ? "—" : sala);
+        lblBoletos.setText(vacio || desgloseBoletos == null ? "—" : desgloseBoletos);
+        lblPrecio.setText(vacio || desglosePrecios == null ? "Sin configurar" : desglosePrecios);
+
+        int total = getCantidadTotalBoletos();
+        if (desglosePrecios == null) {
+            estado("El precio del boleto no está configurado. Avisa al administrador.", views.estilos.Tema.ERROR);
+        } else if (vacio || fecha == null) {
+            estado("No hay funciones disponibles para vender en este momento.", views.estilos.Tema.AVISO);
+        } else if (total <= 0) {
+            estado("Selecciona al menos un boleto para continuar.", views.estilos.Tema.AVISO);
+        } else {
+            estado("Todo listo. Continúa para elegir " + (total == 1 ? "el asiento." : "los " + total + " asientos."), views.estilos.Tema.EXITO);
+        }
+    }
+
+    // Escuchadores de eventos para los 3 spinners
+    public void addCantidadesChangeListener(javax.swing.event.ChangeListener listener) {
+        spnAdulto.addChangeListener(listener);
+        spnNino.addChangeListener(listener);
+        spnAdultoMayor.addChangeListener(listener);
     }
 
     /** Número del paso dentro de un círculo granate. */
@@ -524,10 +645,13 @@ public class TaquillaView extends javax.swing.JPanel {
     private javax.swing.JLabel lblAyuda1;
     private javax.swing.JLabel lblAyuda2;
     private javax.swing.JLabel lblAyuda3;
+    private javax.swing.JLabel lblAyuda4;
+    private javax.swing.JLabel lblAyuda5;
     private javax.swing.JLabel lblBoletos;
     private javax.swing.JLabel lblBoletosTitulo;
     private javax.swing.JLabel lblDatosVenta;
     private javax.swing.JLabel lblDescripcion;
+    private javax.swing.JLabel lblDisponibilidad;
     private javax.swing.JLabel lblEstado;
     private javax.swing.JLabel lblFecha;
     private javax.swing.JLabel lblFechaTitulo;
@@ -537,6 +661,8 @@ public class TaquillaView extends javax.swing.JPanel {
     private javax.swing.JLabel lblPaso1;
     private javax.swing.JLabel lblPaso2;
     private javax.swing.JLabel lblPaso3;
+    private javax.swing.JLabel lblPaso4;
+    private javax.swing.JLabel lblPaso6;
     private javax.swing.JLabel lblPelicula;
     private javax.swing.JLabel lblPrecio;
     private javax.swing.JLabel lblPrecioTitulo;
@@ -566,6 +692,8 @@ public class TaquillaView extends javax.swing.JPanel {
     private javax.swing.JPanel pnlPasoCampos1;
     private javax.swing.JPanel pnlPasoCampos2;
     private javax.swing.JPanel pnlPasoCampos3;
+    private javax.swing.JPanel pnlPasoCampos4;
+    private javax.swing.JPanel pnlPasoCampos5;
     private javax.swing.JPanel pnlPasos;
     private javax.swing.JPanel pnlPrecio;
     private javax.swing.JPanel pnlResumen;
@@ -574,6 +702,8 @@ public class TaquillaView extends javax.swing.JPanel {
     private javax.swing.JPanel pnlTotal;
     private javax.swing.JScrollPane scrPagina;
     private javax.swing.JPanel sepResumen;
-    private javax.swing.JSpinner spnCantidad;
+    private javax.swing.JSpinner spnAdulto;
+    private javax.swing.JSpinner spnAdultoMayor;
+    private javax.swing.JSpinner spnNino;
     // End of variables declaration//GEN-END:variables
 }

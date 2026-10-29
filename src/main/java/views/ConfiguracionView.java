@@ -1,14 +1,16 @@
 package views;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import javax.swing.*;
 import views.estilos.Tema;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 
-/** Conserva la edición del precio general dentro del MDI. */
+/** Configuración de precios por categoría (Adulto, Niño y Adulto Mayor) dentro del MDI. */
 public class ConfiguracionView extends JPanel {
-    private final JTextField txtPrecio = Tema.campo("", 12);
+    private final JTextField txtPrecioAdulto = Tema.campo("", 12);
+    private final JTextField txtPrecioNino = Tema.campo("", 12);
+    private final JTextField txtPrecioAdultoMayor = Tema.campo("", 12);
     private final JButton btnGuardar = Tema.botonPrimario("Guardar");
     private final JButton btnRecargar = Tema.botonSecundario("Recargar");
 
@@ -29,18 +31,18 @@ public class ConfiguracionView extends JPanel {
                 Tema.TEXTO);
 
         JLabel descripcion = Tema.texto(
-                "Administra el precio general de los boletos.",
+                "Administra los precios de los boletos por categoría.",
                 Tema.CUERPO,
                 Tema.SECUNDARIO);
 
         encabezado.add(titulo, BorderLayout.NORTH);
         encabezado.add(descripcion, BorderLayout.CENTER);
 
-        // Tarjeta compartida: fondo blanco, borde y margen de 24.
+        // Tarjeta compartida: fondo blanco, borde y margen.
         JPanel tarjeta = Tema.tarjeta();
 
         JLabel tituloTarjeta = Tema.texto(
-                "Precio de los boletos",
+                "Tarifas de boletos",
                 Tema.SUBTITULO,
                 Tema.TEXTO);
 
@@ -50,17 +52,18 @@ public class ConfiguracionView extends JPanel {
         JPanel formulario = new JPanel();
         formulario.setOpaque(false);
 
-        JLabel etiqueta = Tema.texto(
-                "Precio general por boleto ($)",
-                Tema.ETIQUETA,
-                Tema.TEXTO);
+        JLabel lblAdulto = Tema.texto("Precio Adulto / General ($)", Tema.ETIQUETA, Tema.TEXTO);
+        lblAdulto.setLabelFor(txtPrecioAdulto);
 
-        etiqueta.setLabelFor(txtPrecio);
+        JLabel lblNino = Tema.texto("Precio Niño ($)", Tema.ETIQUETA, Tema.TEXTO);
+        lblNino.setLabelFor(txtPrecioNino);
 
-        // Texto de ayuda que puede ocupar varias líneas.
+        JLabel lblAdultoMayor = Tema.texto("Precio Adulto Mayor ($)", Tema.ETIQUETA, Tema.TEXTO);
+        lblAdultoMayor.setLabelFor(txtPrecioAdultoMayor);
+
+        // Texto de ayuda.
         JTextArea ayuda = new JTextArea(
-                "El precio se aplica a las nuevas ventas de todas las cajas.");
-
+                "Los precios configurados se aplicarán automáticamente a las nuevas ventas en todas las cajas.");
         ayuda.setFont(Tema.CUERPO);
         ayuda.setForeground(Tema.SECUNDARIO);
         ayuda.setOpaque(false);
@@ -71,10 +74,8 @@ public class ConfiguracionView extends JPanel {
         ayuda.setRows(2);
         ayuda.setBorder(BorderFactory.createEmptyBorder());
 
-        // Botones existentes: conservan sus eventos.
-        JPanel acciones = new JPanel(
-                new FlowLayout(FlowLayout.LEADING, 0, 0));
-
+        // Botones de acción.
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
         acciones.setOpaque(false);
         acciones.add(btnGuardar);
         acciones.add(Box.createHorizontalStrut(Tema.SEPARACION));
@@ -85,43 +86,38 @@ public class ConfiguracionView extends JPanel {
 
         layout.setHorizontalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(etiqueta)
-                        .addComponent(txtPrecio, 240, 240, 240)
-                        .addComponent(
-                                ayuda, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(
-                                acciones,
-                                GroupLayout.PREFERRED_SIZE,
-                                GroupLayout.DEFAULT_SIZE,
-                                GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblAdulto)
+                        .addComponent(txtPrecioAdulto, 240, 240, 240)
+                        .addComponent(lblNino)
+                        .addComponent(txtPrecioNino, 240, 240, 240)
+                        .addComponent(lblAdultoMayor)
+                        .addComponent(txtPrecioAdultoMayor, 240, 240, 240)
+                        .addComponent(ayuda, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(acciones, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         );
 
         layout.setVerticalGroup(
                 layout.createSequentialGroup()
-                        .addComponent(etiqueta)
+                        .addComponent(lblAdulto)
                         .addGap(Tema.ESPACIO)
-                        .addComponent(
-                                txtPrecio,
-                                Tema.ALTO_CONTROL,
-                                Tema.ALTO_CONTROL,
-                                Tema.ALTO_CONTROL)
+                        .addComponent(txtPrecioAdulto, Tema.ALTO_CONTROL, Tema.ALTO_CONTROL, Tema.ALTO_CONTROL)
                         .addGap(Tema.SEPARACION)
-                        .addComponent(
-                                ayuda,
-                                GroupLayout.PREFERRED_SIZE,
-                                GroupLayout.DEFAULT_SIZE,
-                                GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblNino)
+                        .addGap(Tema.ESPACIO)
+                        .addComponent(txtPrecioNino, Tema.ALTO_CONTROL, Tema.ALTO_CONTROL, Tema.ALTO_CONTROL)
+                        .addGap(Tema.SEPARACION)
+                        .addComponent(lblAdultoMayor)
+                        .addGap(Tema.ESPACIO)
+                        .addComponent(txtPrecioAdultoMayor, Tema.ALTO_CONTROL, Tema.ALTO_CONTROL, Tema.ALTO_CONTROL)
+                        .addGap(Tema.SEPARACION)
+                        .addComponent(ayuda, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addGap(Tema.MARGEN)
-                        .addComponent(
-                                acciones,
-                                GroupLayout.PREFERRED_SIZE,
-                                GroupLayout.DEFAULT_SIZE,
-                                GroupLayout.PREFERRED_SIZE)
+                        .addComponent(acciones, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         );
 
         tarjeta.add(formulario, BorderLayout.CENTER);
 
-        // Agrupa el encabezado y la tarjeta en la parte superior.
+        // Agrupación general
         JPanel contenido = new JPanel(new BorderLayout(0, 32));
         contenido.setOpaque(false);
         contenido.add(encabezado, BorderLayout.NORTH);
@@ -129,15 +125,30 @@ public class ConfiguracionView extends JPanel {
 
         add(contenido, BorderLayout.NORTH);
 
-        // Se conserva el estado inicial gestionado por el controlador.
         habilitarEdicion(false);
     }
 
-    public String getPrecio() { return txtPrecio.getText().trim(); }
-    public void setPrecio(String precio) { txtPrecio.setText(precio); }
+    // Getters y Setters para las tres tarifas
+    public String getPrecioAdulto() { return txtPrecioAdulto.getText().trim(); }
+    public void setPrecioAdulto(String precio) { txtPrecioAdulto.setText(precio); }
+
+    public String getPrecioNino() { return txtPrecioNino.getText().trim(); }
+    public void setPrecioNino(String precio) { txtPrecioNino.setText(precio); }
+
+    public String getPrecioAdultoMayor() { return txtPrecioAdultoMayor.getText().trim(); }
+    public void setPrecioAdultoMayor(String precio) { txtPrecioAdultoMayor.setText(precio); }
+
+    // Compatibilidad temporal
+    public String getPrecio() { return getPrecioAdulto(); }
+    public void setPrecio(String precio) { setPrecioAdulto(precio); }
+
     public void habilitarEdicion(boolean habilitado) {
-        txtPrecio.setEnabled(habilitado); btnGuardar.setEnabled(habilitado);
+        txtPrecioAdulto.setEnabled(habilitado);
+        txtPrecioNino.setEnabled(habilitado);
+        txtPrecioAdultoMayor.setEnabled(habilitado);
+        btnGuardar.setEnabled(habilitado);
     }
+
     public void addGuardarListener(ActionListener listener) { btnGuardar.addActionListener(listener); }
     public void addRecargarListener(ActionListener listener) { btnRecargar.addActionListener(listener); }
 }
