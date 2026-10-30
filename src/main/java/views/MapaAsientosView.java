@@ -49,8 +49,8 @@ public class MapaAsientosView extends javax.swing.JDialog {
 
         // Panel inferior de acciones (Reestructurado para alojar el label de capacidad)
         javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.BorderLayout());
-        acciones.setBackground(Tema.FONDO);
         acciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        acciones.setBackground(Tema.FONDO);
         
         // Contenedor para los botones alineados a la derecha
         javax.swing.JPanel panelBotones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
@@ -187,8 +187,6 @@ public class MapaAsientosView extends javax.swing.JDialog {
         confirmar.setEnabled(false);
         panelCuadricula.revalidate(); 
         panelCuadricula.repaint();
-        actualizarSeleccion();
-        panelCuadricula.revalidate(); panelCuadricula.repaint();
     }
 
     private void actualizarSeleccion() {

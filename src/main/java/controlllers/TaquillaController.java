@@ -22,10 +22,9 @@ public class TaquillaController {
     private List<Pelicula> peliculas = List.of();
     private List<Funcion> funciones = List.of();
     private List<Funcion> visibles = List.of();
-    private BigDecimal precio;
+    private ConfiguracionDAO.Precios precios;
     private boolean cargando;
-    private Integer funcionInicial;
-    private record Catalogo(List<Pelicula> peliculas, List<Funcion> funciones, BigDecimal precio) {}
+    private record Catalogo(List<Pelicula> peliculas, List<Funcion> funciones, ConfiguracionDAO.Precios precios) {}
     private record Mapa(List<Asiento> asientos, Set<Integer> vendidos) {}
 
     public TaquillaController(MDI mdi, TaquillaView vista) {
@@ -38,7 +37,7 @@ public class TaquillaController {
         vista.habilitarContinuar(false);
         vista.addPeliculaChangeListener(e -> { if (!cargando) cargarFunciones(); });
         vista.addFuncionChangeListener(e -> { if (!cargando) Tareas.validar(vista, this::actualizarTotal); });
-        vista.addCantidadChangeListener(e -> Tareas.validar(vista, this::actualizarTotal));
+        vista.addCantidadesChangeListener(e -> Tareas.validar(vista, this::actualizarTotal));
         vista.addContinuarListener(e -> Tareas.validar(vista, this::abrirMapa));
         cargar();
     }
@@ -46,10 +45,11 @@ public class TaquillaController {
     private void cargar() {
         Tareas.ejecutar(vista, () -> {
             try (Connection c = Conexion.getConexion()) {
-                return new Catalogo(new PeliculaDAO(c).obtenerTodas(), new FuncionDAO(c).listarDisponibles(), new ConfiguracionDAO(c).obtenerPrecio());
+                return new Catalogo(new PeliculaDAO(c).obtenerTodas(), new FuncionDAO(c).listarDisponibles(), new ConfiguracionDAO(c).obtenerPrecios());
             }
         }, datos -> {
-            precio = datos.precio(); funciones = datos.funciones();
+            precios = datos.precios(); 
+            funciones = datos.funciones();
             Set<Integer> ids = funciones.stream().map(Funcion::getIdPelicula).collect(Collectors.toSet());
             peliculas = datos.peliculas().stream().filter(p -> ids.contains(p.getIdPelicula())).toList();
             cargando = true;
@@ -57,12 +57,11 @@ public class TaquillaController {
             for (Pelicula p : peliculas) vista.getCbPelicula().addItem(p.getNombre() + " (#" + p.getIdPelicula() + ")");
             cargando = false;
             cargarFunciones();
-            if (funcionInicial != null) {
-                seleccionarFuncionInicial(funcionInicial);
-                funcionInicial = null;
+            if (precios == null || !precios.estanCompletos()) {
+                Tareas.error(vista, "El administrador debe guardar las tarifas en Administración → Configuración antes de vender.");
+            } else if (peliculas.isEmpty()) {
+                JOptionPane.showMessageDialog(vista, "No hay funciones futuras disponibles. El administrador puede programarlas desde Administración.");
             }
-            if (precio == null) Tareas.error(vista, "El administrador debe guardar el precio en Administración → Configuración antes de vender.");
-            else if (peliculas.isEmpty()) JOptionPane.showMessageDialog(vista, "No hay funciones futuras disponibles. El administrador puede programarlas desde Administración.");
         });
     }
 
@@ -98,19 +97,36 @@ public class TaquillaController {
     }
 
     private void actualizarTotal() {
-        int cantidad = vista.getCantidadBoletos();
-        if (cantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor que cero.");
-        vista.setTotalPagar(precio == null ? "$0.00" : "$" + precio.multiply(BigDecimal.valueOf(cantidad)).toPlainString());
-        int indicePelicula = vista.getCbPelicula().getSelectedIndex(), indiceFuncion = vista.getCbFuncion().getSelectedIndex();
+        int cantAdulto = vista.getCantidadAdulto();
+        int cantNino = vista.getCantidadNino();
+        int cantMayor = vista.getCantidadAdultoMayor();
+        int totalBoletos = cantAdulto + cantNino + cantMayor;
+
+        BigDecimal totalPagar = BigDecimal.ZERO;
+        String desgloseBoletos = totalBoletos + " (" + cantAdulto + " Ad, " + cantNino + " Niñ, " + cantMayor + " May)";
+        String desglosePrecios = null;
+
+        if (precios != null && precios.estanCompletos()) {
+            BigDecimal subAdulto = precios.adulto().multiply(BigDecimal.valueOf(cantAdulto));
+            BigDecimal subNino = precios.nino().multiply(BigDecimal.valueOf(cantNino));
+            BigDecimal subMayor = precios.adultoMayor().multiply(BigDecimal.valueOf(cantMayor));
+            totalPagar = subAdulto.add(subNino).add(subMayor);
+            desglosePrecios = "$" + precios.adulto().toPlainString() + " / $" + precios.nino().toPlainString() + " / $" + precios.adultoMayor().toPlainString();
+        }
+
+        vista.setTotalPagar("$" + totalPagar.toPlainString());
+
+        int indicePelicula = vista.getCbPelicula().getSelectedIndex();
+        int indiceFuncion = vista.getCbFuncion().getSelectedIndex();
         Funcion f = indiceFuncion < 0 ? null : visibles.get(indiceFuncion);
-        vista.mostrarPoster(indicePelicula < 0 ? null : peliculas.get(indicePelicula).getImagenUrl());
+
         vista.mostrarResumen(indicePelicula < 0 ? null : peliculas.get(indicePelicula).getNombre(),
                 f == null ? null : f.getFechaProyeccion().toLocalDate().format(CorteCajaController.FECHA),
                 f == null ? null : hora(f), f == null ? null : "Sala " + f.getIdSala(),
-                cantidad, precio == null ? null : "$" + precio.toPlainString());
-        vista.habilitarContinuar(precio != null && f != null);
+                desgloseBoletos, desglosePrecios);
 
-        // LÓGICA AGREGADA PARA MOSTRAR DISPONIBILIDAD DE ASIENTOS
+        vista.habilitarContinuar(precios != null && precios.estanCompletos() && f != null && totalBoletos > 0);
+
         if (f != null) {
             vista.setDisponibilidad("Calculando...");
             Tareas.ejecutar(vista, () -> {
@@ -136,9 +152,13 @@ public class TaquillaController {
     private void abrirMapa() {
         Sesion.exigirVenta();
         int indice = vista.getCbFuncion().getSelectedIndex();
-        if (indice < 0 || precio == null) throw new IllegalArgumentException("Selecciona una función y verifica el precio del boleto.");
-        int cantidad = vista.getCantidadBoletos();
-        if (cantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor que cero.");
+        if (indice < 0 || precios == null || !precios.estanCompletos()) {
+            throw new IllegalArgumentException("Selecciona una función y verifica los precios de los boletos.");
+        }
+        int cantidad = vista.getCantidadTotalBoletos();
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("Debes seleccionar al menos un boleto.");
+        }
         Funcion funcion = visibles.get(indice);
         Pelicula pelicula = peliculas.get(vista.getCbPelicula().getSelectedIndex());
         Tareas.ejecutar(vista, () -> {
@@ -162,14 +182,24 @@ public class TaquillaController {
     private void vender(MapaAsientosView dialogo, Funcion funcion, Pelicula pelicula, Mapa mapa, int cantidad) {
         List<Integer> seleccionados = dialogo.getAsientosSeleccionados();
         VentaService.validarSeleccion(seleccionados, cantidad);
-        BigDecimal total = precio.multiply(BigDecimal.valueOf(cantidad));
+
+        int cantAdulto = vista.getCantidadAdulto();
+        int cantNino = vista.getCantidadNino();
+        int cantMayor = vista.getCantidadAdultoMayor();
+        BigDecimal subAdulto = precios.adulto().multiply(BigDecimal.valueOf(cantAdulto));
+        BigDecimal subNino = precios.nino().multiply(BigDecimal.valueOf(cantNino));
+        BigDecimal subMayor = precios.adultoMayor().multiply(BigDecimal.valueOf(cantMayor));
+        BigDecimal total = subAdulto.add(subNino).add(subMayor);
+
         if (JOptionPane.showConfirmDialog(dialogo, "¿Confirmar la venta de " + cantidad + " boletos por $" + total.toPlainString() + "?",
                 "Confirmar venta", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
-        Tareas.ejecutar(dialogo, () -> new VentaService().vender(funcion.getIdFuncion(), seleccionados, cantidad, precio), tickets -> {
+
+        Tareas.ejecutar(dialogo, () -> new VentaService().vender(funcion.getIdFuncion(), seleccionados, cantAdulto, cantNino, cantMayor, precios), tickets -> {
             dialogo.dispose();
             TicketReciboView recibo = new TicketReciboView(mdi, true);
             recibo.mostrarTicket(datosRecibo(pelicula, funcion, mapa.asientos(), tickets, Sesion.exigirSesion().getNombre()));
-            recibo.setLocationRelativeTo(mdi); recibo.setVisible(true);
+            recibo.setLocationRelativeTo(mdi); 
+            recibo.setVisible(true);
             cargar();
         });
     }
@@ -182,13 +212,36 @@ public class TaquillaController {
         Map<Integer, Asiento> porId = asientos.stream().collect(Collectors.toMap(Asiento::getIdAsiento, a -> a));
         List<TicketReciboView.Linea> lineas = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
+
+        ConfiguracionDAO.Precios p;
+        try (Connection c = Conexion.getConexion()) {
+            p = new ConfiguracionDAO(c).obtenerPrecios();
+        } catch (Exception e) {
+            p = null;
+        }
+
         for (Ticket t : tickets) {
             Asiento a = porId.get(t.getIdAsiento());
-            lineas.add(new TicketReciboView.Linea(t.getIdTicket(), a.getFila() + "-" + a.getNumero(), t.getMonto().toPlainString()));
+            String nombreAsiento = a != null ? a.getFila() + "-" + a.getNumero() : "—";
+
+            String tipo = "General";
+            if (p != null) {
+                if (p.adulto() != null && t.getMonto().compareTo(p.adulto()) == 0) {
+                    tipo = "Adulto";
+                } else if (p.nino() != null && t.getMonto().compareTo(p.nino()) == 0) {
+                    tipo = "Niño";
+                } else if (p.adultoMayor() != null && t.getMonto().compareTo(p.adultoMayor()) == 0) {
+                    tipo = "Adulto Mayor";
+                }
+            }
+
+            lineas.add(new TicketReciboView.Linea(t.getIdTicket(), nombreAsiento, t.getMonto().toPlainString(), tipo));
             total = total.add(t.getMonto());
         }
+
         String compra = tickets.isEmpty() || tickets.get(0).getFechaHoraCompra() == null ? "—"
                 : tickets.get(0).getFechaHoraCompra().toLocalDateTime().format(COMPRA);
+
         return new TicketReciboView.Datos(pelicula.getNombre(), funcion.getFechaProyeccion().toLocalDate().format(CorteCajaController.FECHA),
                 hora(funcion), funcion.getIdSala(), funcion.getIdFuncion(), cajero, compra, lineas, total.toPlainString());
     }
