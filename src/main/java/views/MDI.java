@@ -59,7 +59,7 @@ public class MDI extends javax.swing.JFrame {
         btnMenuCartelera.setEnabled(btnVenderTickets.isEnabled());
         javax.swing.SwingUtilities.invokeLater(() -> {
             if (isDisplayable()) navegar(config.Sesion.esAdministrador() ? Modulo.PELICULAS : Modulo.TAQUILLA);
-        });
+        });        
     }
 
     private void navegar(Modulo modulo) {
@@ -308,7 +308,7 @@ public class MDI extends javax.swing.JFrame {
             new Login().setVisible(true);
         }
     }//GEN-LAST:event_btnCerrarSesionActionPerformed
-
+       
     public static void main(String args[]) {
         com.mycompany.sistemagestioncine.SistemaGestionCine.main(args);
     }
