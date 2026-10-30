@@ -123,7 +123,9 @@ public class ConfiguracionView extends JPanel {
         contenido.add(encabezado, BorderLayout.NORTH);
         contenido.add(tarjeta, BorderLayout.CENTER);
 
-        add(contenido, BorderLayout.NORTH);
+        setBorder(BorderFactory.createEmptyBorder());
+        views.estilos.Pagina pagina = new views.estilos.Pagina();
+        pagina.add(contenido, BorderLayout.NORTH); add(pagina.conScroll(), BorderLayout.CENTER);
 
         habilitarEdicion(false);
     }

@@ -34,6 +34,7 @@ public final class Tema {
         JLabel etiqueta = new JLabel(texto);
         etiqueta.setFont(fuente);
         etiqueta.setForeground(color);
+        TextoAdaptableUI.aplicar(etiqueta);
         return etiqueta;
     }
 
@@ -54,8 +55,23 @@ public final class Tema {
         return boton(texto, SUPERFICIE, TEXTO);
     }
 
+    public static JButton botonSeleccionable(String texto) {
+        JButton boton = botonSecundario(texto);
+        boton.putClientProperty("seleccionable", true);
+        return boton;
+    }
+
     private static JButton boton(String texto, Color fondo, Color frente) {
         JButton boton = new JButton(texto);
+        aplicarBoton(boton, fondo, frente);
+        return boton;
+    }
+
+    public static void aplicarBoton(JButton boton, boolean primario) {
+        aplicarBoton(boton, primario ? PRIMARIO : SUPERFICIE, primario ? Color.WHITE : TEXTO);
+    }
+
+    private static void aplicarBoton(JButton boton, Color fondo, Color frente) {
         boton.setUI(new BasicButtonUI());
         boton.setFont(CUERPO.deriveFont(Font.BOLD));
         boton.setBackground(fondo);
@@ -69,13 +85,20 @@ public final class Tema {
                 BorderFactory.createEmptyBorder(9, 14, 9, 14)));
         boton.addChangeListener(e -> {
             boolean activo = boton.isEnabled() && (boton.getModel().isRollover() || boton.getModel().isPressed());
-            boton.setBackground(!boton.isEnabled() ? BORDE : activo ? fondo.darker() : fondo);
+            boolean seleccionable = Boolean.TRUE.equals(boton.getClientProperty("seleccionable"));
+            Color base = seleccionable && boton.isSelected() ? PRIMARIO : fondo;
+            boton.setBackground(!boton.isEnabled() ? BORDE : activo ? base.darker() : base);
+            if (seleccionable) boton.setForeground(boton.isSelected() ? Color.WHITE : TEXTO);
         });
-        return boton;
     }
 
     public static JTextField campo(String valor, int columnas) {
         JTextField campo = new JTextField(valor, columnas);
+        aplicarCampo(campo);
+        return campo;
+    }
+
+    public static void aplicarCampo(JTextField campo) {
         campo.setFont(CUERPO);
         campo.setForeground(TEXTO);
         campo.setBackground(SUPERFICIE);
@@ -86,7 +109,6 @@ public final class Tema {
             @Override public void focusGained(FocusEvent e) { campo.setBorder(bordeCampo(PRIMARIO)); }
             @Override public void focusLost(FocusEvent e) { campo.setBorder(bordeCampo(BORDE)); }
         });
-        return campo;
     }
 
     private static Border bordeCampo(Color color) {
@@ -123,6 +145,10 @@ public final class Tema {
             }
         });
         JScrollPane scroll = new JScrollPane(tabla);
+        tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        for (int columna = 0; columna < tabla.getColumnCount(); columna++) {
+            tabla.getColumnModel().getColumn(columna).setPreferredWidth(160);
+        }
         scroll.setBorder(BorderFactory.createLineBorder(BORDE));
         scroll.getViewport().setBackground(SUPERFICIE);
         return scroll;

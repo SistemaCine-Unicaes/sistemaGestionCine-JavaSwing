@@ -34,6 +34,7 @@ public class SalaService {
             } else {
                 Sala anterior = salas.bloquear(sala.getIdSala());
                 if (anterior == null) throw new IllegalStateException("La sala ya no existe.");
+                if (anterior.getCodigoPlano() != null) throw new IllegalStateException("La distribución de una sala predefinida no se puede editar.");
                 sala.setEstado(anterior.getEstado());
                 boolean cambiaMapa = anterior.getCapacidadTotal() != sala.getCapacidadTotal()
                         || anterior.getAsientosPorFila() != sala.getAsientosPorFila()
@@ -60,6 +61,56 @@ public class SalaService {
                     }
                 }
                 salas.actualizarSala(sala);
+            }
+            return null;
+        });
+    }
+
+    public static String validarMotivo(boolean activar, String motivo) {
+        String limpio = motivo == null ? "" : motivo.trim();
+        if (!activar && (limpio.isEmpty() || limpio.length() > 300))
+            throw new IllegalArgumentException("Indica el motivo de desactivación (1 a 300 caracteres).");
+        return activar ? null : limpio;
+    }
+
+    /** El bloqueo de sala también es usado por venta y programación: evita cambios concurrentes. */
+    public void cambiarEstado(int idSala, Integer idAsiento, boolean activar, String motivo) {
+        Sesion.exigirAdministrador();
+        String razon = validarMotivo(activar, motivo);
+        Transacciones.ejecutar(conexiones, c -> {
+            Sala sala = new SalaDAO(c).bloquear(idSala);
+            if (sala == null) throw new IllegalStateException("La sala ya no existe.");
+            if (idAsiento != null) {
+                try (PreparedStatement ps = c.prepareStatement("SELECT 1 FROM Asiento WHERE id_asiento=? AND id_sala=? FOR UPDATE")) {
+                    ps.setInt(1,idAsiento); ps.setInt(2,idSala);
+                    try (ResultSet rs=ps.executeQuery()) {
+                        if (!rs.next()) throw new IllegalArgumentException("El asiento no pertenece a esta sala.");
+                    }
+                }
+            }
+            if (!activar) {
+                String sql = "SELECT EXISTS(SELECT 1 FROM Ticket t JOIN Funcion f USING(id_funcion) "
+                    + "JOIN Asiento a USING(id_asiento) WHERE f.id_sala=? "
+                    + "AND f.estado IN ('Programada','en curso') AND f.fecha_proyeccion + f.hora_fin "
+                    + "+ CASE WHEN f.hora_fin<=f.hora_inicio THEN interval '1 day' ELSE interval '0 day' END > LOCALTIMESTAMP"
+                    + (idAsiento == null ? "" : " AND a.id_asiento=?") + ")";
+                try (PreparedStatement ps = c.prepareStatement(sql)) {
+                    ps.setInt(1,idSala); if (idAsiento != null) ps.setInt(2,idAsiento);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        rs.next(); if (rs.getBoolean(1)) throw new IllegalStateException(
+                            "Hay boletos vendidos para funciones pendientes. Resuelve esas ventas antes de desactivar "
+                            + (idAsiento == null ? "la sala." : "el asiento."));
+                    }
+                }
+            }
+            String sql = idAsiento == null
+                    ? "UPDATE Sala SET estado=?::estado_sala,motivo_inactividad=? WHERE id_sala=?"
+                    : "UPDATE Asiento SET estado=?::estado_asiento,motivo_inactividad=? WHERE id_asiento=? AND id_sala=?";
+            try (PreparedStatement ps=c.prepareStatement(sql)) {
+                ps.setString(1,idAsiento == null ? (activar ? "ACTIVA" : "MANTENIMIENTO") : (activar ? "Disponible" : "Averiado"));
+                ps.setString(2,razon); ps.setInt(3,idAsiento == null ? idSala : idAsiento);
+                if (idAsiento != null) ps.setInt(4,idSala);
+                if (ps.executeUpdate()!=1) throw new IllegalStateException("No se pudo actualizar el estado.");
             }
             return null;
         });

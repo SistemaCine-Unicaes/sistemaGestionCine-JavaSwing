@@ -39,9 +39,17 @@ public class Sesion {
     }
 
     public static boolean esAdministrador() {
-        Usuario usuario = usuarioActual;
+        return esAdministrador(usuarioActual);
+    }
+
+    // Roles aceptados por el sistema; "Admin" se conserva por los usuarios registrados antes del módulo de usuarios.
+    public static boolean esAdministrador(Usuario usuario) {
         return usuario != null && ("Admin".equalsIgnoreCase(usuario.getRol())
                 || "Administrador".equalsIgnoreCase(usuario.getRol()));
+    }
+
+    public static boolean esCajero(Usuario usuario) {
+        return usuario != null && "Cajero".equalsIgnoreCase(usuario.getRol());
     }
 
     public static Usuario exigirSesion() {
@@ -57,7 +65,7 @@ public class Sesion {
 
     public static Usuario exigirVenta() {
         Usuario usuario = exigirSesion();
-        if (!esAdministrador() && !"Cajero".equalsIgnoreCase(usuario.getRol())) {
+        if (!esAdministrador(usuario) && !esCajero(usuario)) {
             throw new IllegalStateException("Tu usuario no tiene permiso para vender boletos.");
         }
         return usuario;

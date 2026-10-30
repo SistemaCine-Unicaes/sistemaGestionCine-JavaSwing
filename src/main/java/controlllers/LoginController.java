@@ -25,9 +25,7 @@ public class LoginController {
                     Tareas.error(vista, "Usuario o contraseña incorrectos, o usuario inactivo.");
                     return;
                 }
-                if (!"Admin".equalsIgnoreCase(usuario.getRol())
-                        && !"Administrador".equalsIgnoreCase(usuario.getRol())
-                        && !"Cajero".equalsIgnoreCase(usuario.getRol())) {
+                if (!Sesion.esAdministrador(usuario) && !Sesion.esCajero(usuario)) {
                     Tareas.error(vista, "El usuario no tiene un rol autorizado para este sistema.");
                     return;
                 }

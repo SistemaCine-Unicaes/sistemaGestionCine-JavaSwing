@@ -28,7 +28,12 @@ public class TaquillaController {
     private record Mapa(List<Asiento> asientos, Set<Integer> vendidos) {}
 
     public TaquillaController(MDI mdi, TaquillaView vista) {
+        this(mdi, vista, null);
+    }
+
+    public TaquillaController(MDI mdi, TaquillaView vista, Integer idFuncion) {
         Sesion.exigirVenta(); this.mdi = mdi; this.vista = vista;
+        this.funcionInicial = idFuncion;
         vista.habilitarContinuar(false);
         vista.addPeliculaChangeListener(e -> { if (!cargando) cargarFunciones(); });
         vista.addFuncionChangeListener(e -> { if (!cargando) Tareas.validar(vista, this::actualizarTotal); });
@@ -58,6 +63,26 @@ public class TaquillaController {
                 JOptionPane.showMessageDialog(vista, "No hay funciones futuras disponibles. El administrador puede programarlas desde Administración.");
             }
         });
+    }
+
+    private void seleccionarFuncionInicial(int idFuncion) {
+        Funcion elegida = funciones.stream().filter(f -> f.getIdFuncion() == idFuncion).findFirst().orElse(null);
+        if (elegida == null) {
+            vista.getCbFuncion().setSelectedIndex(-1);
+            Tareas.error(vista, "La función seleccionada ya no está disponible. Elige otro horario.");
+            return;
+        }
+        for (int i = 0; i < peliculas.size(); i++) {
+            if (peliculas.get(i).getIdPelicula() == elegida.getIdPelicula()) {
+                vista.getCbPelicula().setSelectedIndex(i);
+                for (int j = 0; j < visibles.size(); j++) {
+                    if (visibles.get(j).getIdFuncion() == idFuncion) {
+                        vista.getCbFuncion().setSelectedIndex(j);
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     private void cargarFunciones() {

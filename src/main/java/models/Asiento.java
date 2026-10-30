@@ -15,6 +15,15 @@ public class Asiento {
     private String fila;
     private int numero;
     private String estado;
+    private int columnaPlano = -1;
+    private int filaPlano = -1;
+    private String motivoInactividad;
+    public int getColumnaPlano() { return columnaPlano < 0 ? numero - 1 : columnaPlano; }
+    public void setColumnaPlano(int columna) { columnaPlano = columna; }
+    public int getFilaPlano() { return filaPlano; }
+    public void setFilaPlano(int fila) { filaPlano = fila; }
+    public String getMotivoInactividad() { return motivoInactividad; }
+    public void setMotivoInactividad(String motivo) { motivoInactividad = motivo; }
 
     public Asiento() {
     }

@@ -33,12 +33,14 @@
             <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0" />
               <Group type="103" groupAlignment="0" attributes="0">
+                <Component id="btnMenuCartelera" max="32767" attributes="0" />
                 <Component id="btnMenuPeliculas" max="32767" attributes="0" />
                 <Component id="btnMenuSalas" max="32767" attributes="0" />
                 <Component id="btnMenuFunciones" max="32767" attributes="0" />
                 <Component id="btnVenderTickets" max="32767" attributes="0" />
                 <Component id="btnCorteCaja" max="32767" attributes="0" />
                 <Component id="btnConfiguracion" max="32767" attributes="0" />
+                <Component id="btnUsuarios" max="32767" attributes="0" />
                 <Component id="btnCerrarSesion" max="32767" attributes="0" />
               </Group>
               <EmptySpace max="-2" attributes="0" />
@@ -49,6 +51,8 @@
           <Group type="103" groupAlignment="0" attributes="0">
             <Group type="102" attributes="0">
               <EmptySpace min="-2" pref="36" max="-2" attributes="0" />
+              <Component id="btnMenuCartelera" min="-2" max="-2" attributes="0" />
+              <EmptySpace min="-2" pref="24" max="-2" attributes="0" />
               <Component id="btnMenuPeliculas" min="-2" max="-2" attributes="0" />
               <EmptySpace min="-2" pref="24" max="-2" attributes="0" />
               <Component id="btnMenuSalas" min="-2" max="-2" attributes="0" />
@@ -61,6 +65,8 @@
               <EmptySpace min="-2" pref="24" max="-2" attributes="0" />
               <Component id="btnConfiguracion" min="-2" max="-2" attributes="0" />
               <EmptySpace min="-2" pref="24" max="-2" attributes="0" />
+              <Component id="btnUsuarios" min="-2" max="-2" attributes="0" />
+              <EmptySpace min="-2" pref="24" max="-2" attributes="0" />
               <Component id="btnCerrarSesion" min="-2" max="-2" attributes="0" />
               <EmptySpace pref="36" max="32767" attributes="0" />
             </Group>
@@ -68,9 +74,17 @@
         </DimensionLayout>
       </Layout>
       <SubComponents>
+        <Component class="javax.swing.JButton" name="btnMenuCartelera">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Cartelera" />
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnMenuCarteleraActionPerformed" />
+          </Events>
+        </Component>
         <Component class="javax.swing.JButton" name="btnMenuPeliculas">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Peliculas" />
+            <Property name="text" type="java.lang.String" value="Películas" />
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnMenuPeliculasActionPerformed" />
@@ -86,7 +100,7 @@
         </Component>
         <Component class="javax.swing.JButton" name="btnVenderTickets">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Venta Tickets" />
+            <Property name="text" type="java.lang.String" value="Venta de boletos" />
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnVenderTicketsActionPerformed" />
@@ -122,6 +136,14 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnConfiguracionActionPerformed" />
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="btnUsuarios">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Usuarios" />
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnUsuariosActionPerformed" />
           </Events>
         </Component>
       </SubComponents>
