@@ -149,7 +149,9 @@ public class CorteCajaView extends javax.swing.JPanel {
         tglAnual = new javax.swing.JToggleButton();
         pnlFiltroAccion = new javax.swing.JPanel();
         lblFiltroAccion = new javax.swing.JLabel();
+        pnlAcciones = new javax.swing.JPanel();
         btnGenerarReporte = views.estilos.Tema.botonPrimario("");
+        btnExportarPdf = views.estilos.Tema.botonSecundario("");
         pnlIndicadores = new javax.swing.JPanel();
         pnlIndIngresos = new javax.swing.JPanel();
         lblIndIngresosTitulo = new javax.swing.JLabel();
@@ -282,9 +284,20 @@ public class CorteCajaView extends javax.swing.JPanel {
         lblFiltroAccion.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 8, 0));
         pnlFiltroAccion.add(lblFiltroAccion);
 
+        pnlAcciones.setOpaque(false);
+        pnlAcciones.setAlignmentX(0.0F);
+        pnlAcciones.setLayout(new java.awt.GridLayout(2, 1, 0, 8));
+
         btnGenerarReporte.setText("Generar reporte");
         btnGenerarReporte.setPreferredSize(new java.awt.Dimension(170, 40));
-        pnlFiltroAccion.add(btnGenerarReporte);
+        pnlAcciones.add(btnGenerarReporte);
+
+        btnExportarPdf.setText("Exportar PDF");
+        btnExportarPdf.setToolTipText("Guarda el corte mostrado como reporte PDF");
+        btnExportarPdf.setPreferredSize(new java.awt.Dimension(170, 40));
+        pnlAcciones.add(btnExportarPdf);
+
+        pnlFiltroAccion.add(pnlAcciones);
 
         pnlFiltros.add(pnlFiltroAccion);
 
@@ -517,6 +530,10 @@ public class CorteCajaView extends javax.swing.JPanel {
         return tblVentasCajeros;
     }
 
+    public void addExportarPdfListener(java.awt.event.ActionListener listener) {
+        btnExportarPdf.addActionListener(listener);
+    }
+
     public void addGenerarReporteListener(java.awt.event.ActionListener listener) {
         btnGenerarReporte.addActionListener(listener);
         txtFecha.addActionListener(listener);
@@ -557,6 +574,7 @@ public class CorteCajaView extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnExportarPdf;
     private javax.swing.JButton btnGenerarReporte;
     private javax.swing.ButtonGroup grpTipo;
     private javax.swing.JLabel lblCajeros;
@@ -585,6 +603,7 @@ public class CorteCajaView extends javax.swing.JPanel {
     private javax.swing.JLabel lblTotalTickets;
     private javax.swing.JLabel lblTotalesTitulo;
     private javax.swing.JLabel lblVacio;
+    private javax.swing.JPanel pnlAcciones;
     private javax.swing.JPanel pnlCifras;
     private javax.swing.JPanel pnlDetalle;
     private javax.swing.JPanel pnlDetalleTitulo;

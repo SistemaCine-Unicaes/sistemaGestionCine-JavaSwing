@@ -99,7 +99,8 @@ La vista utiliza los colores, tipografía, tarjetas, campos y botones compartido
   Se respetan pasillos, posiciones inexistentes y asientos averiados. No bloquea huecos anteriores ni asientos en los extremos.
   La regla se comprueba otra vez dentro de la transacción de venta con los boletos actuales de esa función.
 - **Administración → Corte de caja:** reportes diarios, mensuales o anuales; el mes/año se obtiene de la fecha introducida.
-  Incluye cantidad e importe por cajero y totales del mismo período.
+  Incluye cantidad e importe por cajero y totales del mismo período. **Exportar PDF** guarda el corte que está
+  en pantalla con el diseño de la plantilla de reportes: resumen, ventas por cajero con su participación y total del período.
 - **Administración → Usuarios:** crea, lista, edita y elimina cajeros y administradores (tabla `Usuario`, campo `rol`).
   **Guardar usuario** crea la cuenta en Supabase Auth y la fila en `Usuario` dentro de la misma transacción:
   si Supabase la rechaza, no queda ninguna fila. La contraseña exige 8 caracteres con letras y números y se confirma dos veces.
