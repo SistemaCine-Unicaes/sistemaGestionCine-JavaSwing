@@ -51,14 +51,20 @@ public class TicketReciboView extends javax.swing.JDialog {
         scrBoleto.getViewport().setBackground(Tema.FONDO);
         scrBoleto.getVerticalScrollBar().setUnitIncrement(24);
         scrBoleto.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        setMinimumSize(new Dimension(460, 520));
+        views.estilos.Adaptable.envolver(scrBoleto, (JComponent) scrBoleto.getViewport().getView());
+        views.estilos.Adaptable.columnas(pnlDatos, 2, 150, 16);
+        views.estilos.Adaptable.columnas(pnlAcciones, 2, 160, 12);
+        for (JLabel etiqueta : new JLabel[]{lblPelicula,lblExito,lblAtendio}) {
+            views.estilos.TextoAdaptableUI.aplicar(etiqueta);
+            etiqueta.setMaximumSize(new Dimension(Integer.MAX_VALUE,Integer.MAX_VALUE));
+        }
     }
 
     /** Llena el boleto y ajusta el tamaño del diálogo a la pantalla. */
     public void mostrarTicket(Datos datos) {
         int cantidad = datos.lineas().size();
         lblExito.setText("Venta registrada · " + cantidad + (cantidad == 1 ? " boleto" : " boletos") + " · Total $" + datos.total());
-        lblPelicula.setText("<html><body style='width:340px'>" + html(datos.pelicula()) + "</body></html>");
+        lblPelicula.setText(datos.pelicula());
         lblFecha.setText(datos.fecha());
         lblHora.setText(datos.hora());
         lblSala.setText(String.format("%02d", datos.sala()));
@@ -77,7 +83,7 @@ public class TicketReciboView extends javax.swing.JDialog {
         pack();
         int alto = GraphicsEnvironment.isHeadless() ? getHeight()
                 : Math.min(getHeight(), GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().height - 40);
-        setSize(Math.max(getWidth(), 480), alto);
+        views.estilos.Adaptable.limitarVentana(this, Math.max(getWidth(), 480), alto);
     }
 
     private static JLabel ficha(String asiento) {
@@ -100,10 +106,6 @@ public class TicketReciboView extends javax.swing.JDialog {
         panel.setAlignmentX(LEFT_ALIGNMENT);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
         return panel;
-    }
-
-    private static String html(String texto) {
-        return texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private void imprimir() {

@@ -19,8 +19,13 @@ public class MapaAsientosView extends javax.swing.JDialog {
     private final java.util.Map<Integer, JToggleButton> botones = new java.util.LinkedHashMap<>();
     private final javax.swing.JButton confirmar = new javax.swing.JButton("Confirmar compra");
     private int cantidadRequerida;
+    private java.util.List<models.Asiento> asientosActuales = java.util.List.of();
+    private java.util.Set<Integer> vendidosActuales = java.util.Set.of();
+    private final javax.swing.JTextArea ayudaSeleccion = new javax.swing.JTextArea();
 
     private void configurarControles() {
+        getContentPane().removeAll();
+        panelCuadricula = new PlanoAsientosPanel();
         // Fondo general de la ventana
         getContentPane().setBackground(Tema.FONDO);
         setLayout(new java.awt.BorderLayout(8, 8));
@@ -42,9 +47,15 @@ public class MapaAsientosView extends javax.swing.JDialog {
         scroll.setPreferredSize(new java.awt.Dimension(640, 415));
         add(scroll, java.awt.BorderLayout.CENTER);
 
-        // Panel inferior de acciones
-        javax.swing.JPanel acciones = new javax.swing.JPanel();
+        // Panel inferior de acciones (Reestructurado para alojar el label de capacidad)
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.BorderLayout());
         acciones.setBackground(Tema.FONDO);
+        acciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        
+        // Contenedor para los botones alineados a la derecha
+        javax.swing.JPanel panelBotones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
+        panelBotones.setBackground(Tema.FONDO);
+        
         javax.swing.JButton cancelar = new javax.swing.JButton("Cancelar");
         cancelar.addActionListener(e -> dispose());
         
@@ -60,19 +71,49 @@ public class MapaAsientosView extends javax.swing.JDialog {
         confirmar.setBackground(Tema.PRIMARIO); // Granate
         cancelar.setBackground(Tema.SECUNDARIO); // Color secundario
 
-        acciones.add(confirmar); 
-        acciones.add(cancelar);
+        panelBotones.add(confirmar); 
+        panelBotones.add(cancelar);
+        
+        // Configurar el label de capacidad y moverlo al panel de acciones para protegerlo
+        lblCapacidad.setFont(Tema.CUERPO.deriveFont(java.awt.Font.BOLD, 14f));
+        lblCapacidad.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        
+        acciones.add(lblCapacidad, java.awt.BorderLayout.WEST);
+        acciones.add(panelBotones, java.awt.BorderLayout.EAST);
+        
         add(acciones, java.awt.BorderLayout.SOUTH);
+        ayudaSeleccion.setEditable(false); ayudaSeleccion.setFocusable(false);
+        ayudaSeleccion.setLineWrap(true); ayudaSeleccion.setWrapStyleWord(true);
+        ayudaSeleccion.setFont(Tema.CUERPO); ayudaSeleccion.setRows(3);
+        ayudaSeleccion.setBackground(Tema.FONDO);
+        ayudaSeleccion.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 12, 4, 12));
+        javax.swing.JPanel pie = new javax.swing.JPanel(new java.awt.BorderLayout(0, 8));
+        javax.swing.JScrollPane scrollAyuda = new javax.swing.JScrollPane(ayudaSeleccion);
+        scrollAyuda.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        scrollAyuda.setPreferredSize(new java.awt.Dimension(0, 84));
+        scrollAyuda.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        pie.setBackground(Tema.FONDO); pie.add(scrollAyuda, java.awt.BorderLayout.NORTH);
+        pie.add(acciones, java.awt.BorderLayout.SOUTH);
+        add(pie, java.awt.BorderLayout.SOUTH);
         
         confirmar.setEnabled(false);
         pack();
-        setLocationRelativeTo(getOwner());
+        views.estilos.Adaptable.limitarVentana(this, 900, 640);
     }
 
     public void mostrarAsientos(java.util.List<models.Asiento> asientos, java.util.Set<Integer> vendidos, int cantidad) {
         cantidadRequerida = cantidad;
-        botones.clear(); panelCuadricula.removeAll();
+        botones.clear(); 
+        panelCuadricula.removeAll();
+        
+        // Variables para el cálculo de capacidad
+        int totalAsientos = asientos.size();
+        int asientosOcupados = 0;
+
         panelCuadricula.setLayout(new java.awt.GridBagLayout());
+        asientosActuales = java.util.List.copyOf(asientos);
+        vendidosActuales = java.util.Set.copyOf(vendidos);
+        botones.clear(); panelCuadricula.removeAll();
         java.util.Map<String, Integer> filas = new java.util.LinkedHashMap<>();
         
         for (models.Asiento asiento : asientos) {
@@ -80,9 +121,14 @@ public class MapaAsientosView extends javax.swing.JDialog {
             JToggleButton boton = new JToggleButton(asiento.getFila() + "-" + asiento.getNumero());
             boton.setToolTipText(asiento.getTipoDeAsiento() + " · " + asiento.getEstado());
             
-            boolean vendido = vendidos.contains(asiento.getIdAsiento());
+            boolean vendido = vendidos.contains(asiento.getIdAsiento()) || "Vendido".equals(asiento.getEstado());
             boolean disponible = "Disponible".equals(asiento.getEstado()) && !vendido;
             boton.setEnabled(disponible);
+            
+            // Conteo de asientos ocupados para la métrica
+            if (vendido) {
+                asientosOcupados++;
+            }
             
             // Diseño base de la butaca (plano y cuadrado)
             boton.setFont(Tema.ETIQUETA);
@@ -119,18 +165,42 @@ public class MapaAsientosView extends javax.swing.JDialog {
                     boton.setForeground(Tema.TEXTO);
                 }
                 
-                confirmar.setEnabled(getAsientosSeleccionados().size() == cantidadRequerida);
+                actualizarSeleccion();
             });
             
-            java.awt.GridBagConstraints celda = new java.awt.GridBagConstraints();
-            celda.gridx = asiento.getNumero() - 1; celda.gridy = fila;
-            celda.insets = new java.awt.Insets(4, 4, 4, 4); // Espaciado entre butacas
-            celda.fill = java.awt.GridBagConstraints.BOTH;
-            panelCuadricula.add(boton, celda); 
+            ((PlanoAsientosPanel)panelCuadricula).colocar(boton, asiento, fila);
             botones.put(asiento.getIdAsiento(), boton);
         }
+        
+        // Cálculo del porcentaje y actualización del Label
+        double porcentaje = totalAsientos > 0 ? ((double) asientosOcupados / totalAsientos) * 100 : 0;
+        lblCapacidad.setText(String.format("Ocupación: %.0f%%", porcentaje));
+        
+        if (porcentaje >= 90) {
+            lblCapacidad.setForeground(java.awt.Color.RED);
+        } else if (porcentaje >= 50) {
+            lblCapacidad.setForeground(java.awt.Color.ORANGE);
+        } else {
+            lblCapacidad.setForeground(new java.awt.Color(46, 204, 113)); // Verde para salas vacías
+        }
+
         confirmar.setEnabled(false);
+        panelCuadricula.revalidate(); 
+        panelCuadricula.repaint();
+        actualizarSeleccion();
         panelCuadricula.revalidate(); panelCuadricula.repaint();
+    }
+
+    private void actualizarSeleccion() {
+        java.util.List<Integer> seleccionados = getAsientosSeleccionados();
+        java.util.List<models.Asiento> huecos = services.AsientosContiguos.huecosNuevos(
+                asientosActuales, vendidosActuales, seleccionados);
+        confirmar.setEnabled(seleccionados.size() == cantidadRequerida && huecos.isEmpty());
+        ayudaSeleccion.setForeground(huecos.isEmpty() ? Tema.SECUNDARIO : Tema.ERROR);
+        ayudaSeleccion.setText(huecos.isEmpty()
+                ? seleccionados.size() + " de " + cantidadRequerida + " asientos seleccionados. Evita dejar un asiento libre entre asientos vendidos o seleccionados."
+                : services.AsientosContiguos.mensaje(huecos));
+        ayudaSeleccion.setCaretPosition(0);
     }
 
     public java.util.List<Integer> getAsientosSeleccionados() {
@@ -149,20 +219,30 @@ public class MapaAsientosView extends javax.swing.JDialog {
     private void initComponents() {
 
         panelCuadricula = new javax.swing.JPanel();
+        lblCapacidad = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         panelCuadricula.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
+        lblCapacidad.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblCapacidad.setText("Ocupación: 0%");
+
         javax.swing.GroupLayout panelCuadriculaLayout = new javax.swing.GroupLayout(panelCuadricula);
         panelCuadricula.setLayout(panelCuadriculaLayout);
         panelCuadriculaLayout.setHorizontalGroup(
             panelCuadriculaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 624, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelCuadriculaLayout.createSequentialGroup()
+                .addContainerGap(456, Short.MAX_VALUE)
+                .addComponent(lblCapacidad, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(17, 17, 17))
         );
         panelCuadriculaLayout.setVerticalGroup(
             panelCuadriculaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 415, Short.MAX_VALUE)
+            .addGroup(panelCuadriculaLayout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addComponent(lblCapacidad)
+                .addContainerGap(368, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -207,6 +287,7 @@ public class MapaAsientosView extends javax.swing.JDialog {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel lblCapacidad;
     private javax.swing.JPanel panelCuadricula;
     // End of variables declaration//GEN-END:variables
 }

@@ -32,9 +32,13 @@ class FlujosTest {
             Usuario usuario = new Usuario(); usuario.setRol("Cajero"); Sesion.setUsuarioActual(usuario);
             permisos.aplicarPermisosPorRol();
             assertTrue(venta.isEnabled()); assertFalse(salas.isEnabled()); assertFalse(corte.isEnabled());
+            assertFalse(salas.isVisible()); assertFalse(peliculas.isVisible()); assertFalse(corte.isVisible());
+            assertTrue(venta.isVisible());
             assertThrows(IllegalStateException.class, Sesion::exigirAdministrador);
             usuario.setRol("Administrador"); permisos.aplicarPermisosPorRol();
             assertTrue(salas.isEnabled()); assertTrue(peliculas.isEnabled()); assertTrue(corte.isEnabled());
+            assertTrue(salas.isVisible()); assertTrue(peliculas.isVisible()); assertTrue(corte.isVisible());
+            usuario.setRol("Admin"); permisos.aplicarPermisosPorRol(); assertTrue(salas.isVisible());
             usuario.setRol("Desconocido"); permisos.aplicarPermisosPorRol(); assertFalse(venta.isEnabled());
             Sesion.cerrarSesion(); assertFalse(Sesion.haySesionActiva());
             assertThrows(IllegalStateException.class, Sesion::exigirVenta);

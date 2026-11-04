@@ -15,6 +15,15 @@ public class Sala {
     private int tiempoDeLimpieza;
     private int asientosPorFila;
     private String estado;
+    private String nombre;
+    private String codigoPlano;
+    private String motivoInactividad;
+    public String getNombre() { return nombre == null ? "Sala " + idSala : nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getCodigoPlano() { return codigoPlano; }
+    public void setCodigoPlano(String codigo) { codigoPlano = codigo; }
+    public String getMotivoInactividad() { return motivoInactividad; }
+    public void setMotivoInactividad(String motivo) { motivoInactividad = motivo; }
 
     public Sala() {
     }

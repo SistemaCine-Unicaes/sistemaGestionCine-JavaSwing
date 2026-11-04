@@ -63,6 +63,7 @@ public class FuncionesView extends JPanel {
                         Tema.SEPARACION));
 
         campos.setOpaque(false);
+        views.estilos.Adaptable.columnas(campos, 2, 240, 16);
 
         campos.add(crearGrupo("Película", cbPelicula));
         campos.add(crearGrupo("Sala", cbSala));
@@ -74,8 +75,8 @@ public class FuncionesView extends JPanel {
                 new FlowLayout(FlowLayout.LEADING, 0, 0));
 
         acciones.setOpaque(false);
+        views.estilos.Adaptable.columnas(acciones, 2, 190, 12);
         acciones.add(btnProgramar);
-        acciones.add(Box.createHorizontalStrut(Tema.SEPARACION));
         acciones.add(btnRecargar);
 
         // Separación entre los campos y las acciones.
@@ -87,14 +88,42 @@ public class FuncionesView extends JPanel {
         formulario.add(acciones, BorderLayout.SOUTH);
 
         tarjeta.add(formulario, BorderLayout.CENTER);
-
-        // Misma separación de bloques que en Configuración.
+        
+        // Contenedor de programación y reportes
         JPanel contenido = new JPanel(new BorderLayout(0, 32));
         contenido.setOpaque(false);
-        contenido.add(encabezado, BorderLayout.NORTH);
-        contenido.add(tarjeta, BorderLayout.CENTER);
 
-        add(contenido, BorderLayout.NORTH);
+        // Formulario de programación original
+        JPanel seccionProgramacion = new JPanel(new BorderLayout(0, 16));
+        seccionProgramacion.setOpaque(false);
+
+        seccionProgramacion.add(encabezado, BorderLayout.NORTH);
+        seccionProgramacion.add(tarjeta, BorderLayout.CENTER);
+
+        // Reutilizar la pantalla de reportes existente
+        ReporteFuncionView reportes = new ReporteFuncionView();
+
+        // Reservar espacio para la tabla y sus filtros
+        JPanel seccionReportes = new JPanel(new BorderLayout());
+        seccionReportes.setOpaque(false);
+
+        seccionReportes.setPreferredSize(new java.awt.Dimension(800, 500));
+
+        seccionReportes.add(reportes, BorderLayout.CENTER);
+
+        // Colocar los reportes debajo del formulario
+        contenido.add(seccionProgramacion, BorderLayout.NORTH);
+
+        contenido.add(seccionReportes, BorderLayout.CENTER);
+
+        // Mantener el scroll original de FuncionesView
+        setBorder(BorderFactory.createEmptyBorder());
+
+        views.estilos.Pagina pagina = new views.estilos.Pagina();
+
+        pagina.add(contenido, BorderLayout.NORTH);
+
+        add(pagina.conScroll(), BorderLayout.CENTER);
 
         // El controlador habilita el botón cuando hay opciones disponibles.
         habilitarProgramar(false);

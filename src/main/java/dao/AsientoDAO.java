@@ -15,8 +15,16 @@ public class AsientoDAO {
         try (PreparedStatement ps = conexion.prepareStatement("SELECT * FROM Asiento WHERE id_sala=? ORDER BY length(fila),fila,numero")) {
             ps.setInt(1, idSala);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) lista.add(new Asiento(rs.getInt("id_asiento"), rs.getInt("id_sala"),
-                        rs.getString("tipo_de_asiento"), rs.getString("fila"), rs.getInt("numero"), rs.getString("estado")));
+                while (rs.next()) {
+                    Asiento asiento = new Asiento(rs.getInt("id_asiento"), rs.getInt("id_sala"),
+                        rs.getString("tipo_de_asiento"), rs.getString("fila"), rs.getInt("numero"), rs.getString("estado"));
+                    if (SalaDAO.tieneColumna(rs, "columna_plano")) {
+                        int columna = rs.getInt("columna_plano"); if (!rs.wasNull()) asiento.setColumnaPlano(columna);
+                        int fila = rs.getInt("fila_plano"); if (!rs.wasNull()) asiento.setFilaPlano(fila);
+                        asiento.setMotivoInactividad(rs.getString("motivo_inactividad"));
+                    }
+                    lista.add(asiento);
+                }
             }
             return lista;
         } catch (SQLException e) { throw new AccesoDatosException(e); }
