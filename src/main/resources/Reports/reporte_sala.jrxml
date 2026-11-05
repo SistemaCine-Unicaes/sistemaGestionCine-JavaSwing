@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ReporteSala" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d">
+    <parameter name="sala_filtro" class="java.lang.String"/>
+    <field name="nombre_sala" class="java.lang.String"/>
+    <field name="boletos_vendidos" class="java.lang.Integer"/>
+    <field name="asientos_ocupados" class="java.lang.Integer"/>
+    <field name="recaudacion" class="java.lang.String"/>
+    <title>
+        <band height="70" splitType="Stretch">
+            <rect>
+                <reportElement x="0" y="0" width="555" height="60" backcolor="#182235" uuid="11111111-2222-3333-4444-555555555555"/>
+            </rect>
+            <staticText>
+                <reportElement x="20" y="15" width="300" height="30" forecolor="#FFFFFF" uuid="22222222-3333-4444-5555-666666666666"/>
+                <textElement>
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Reporte de Ocupación por Sala]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="350" y="20" width="185" height="20" forecolor="#FFFFFF" uuid="33333333-4444-5555-6666-777777777777"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA["Filtro: " + $P{sala_filtro}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+    <columnHeader>
+        <band height="30" splitType="Stretch">
+            <rect>
+                <reportElement x="0" y="0" width="555" height="25" backcolor="#B4233C" uuid="44444444-5555-6666-7777-888888888888"/>
+            </rect>
+            <staticText>
+                <reportElement x="10" y="5" width="130" height="15" forecolor="#FFFFFF" uuid="55555555-6666-7777-8888-999999999999"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[SALA]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="150" y="5" width="120" height="15" forecolor="#FFFFFF" uuid="66666666-7777-8888-9999-000000000000"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[BOLETOS VENDIDOS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="280" y="5" width="130" height="15" forecolor="#FFFFFF" uuid="77777777-8888-9999-0000-111111111111"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[ASIENTOS OCUPADOS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="420" y="5" width="120" height="15" forecolor="#FFFFFF" uuid="88888888-9999-0000-1111-222222222222"/>
+                <textElement textAlignment="Right"><font isBold="true"/></textElement>
+                <text><![CDATA[RECAUDACIÓN]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="25" splitType="Stretch">
+            <textField>
+                <reportElement x="10" y="2" width="130" height="20" uuid="99999999-0000-1111-2222-333333333333"/>
+                <textFieldExpression><![CDATA[$F{nombre_sala}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="150" y="2" width="120" height="20" uuid="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"/>
+                <textFieldExpression><![CDATA[$F{boletos_vendidos}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="280" y="2" width="130" height="20" uuid="bbbbbbbb-cccc-dddd-eeee-ffffffffffff"/>
+                <textFieldExpression><![CDATA[$F{asientos_ocupados}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="420" y="2" width="120" height="20" uuid="cccccccc-dddd-eeee-ffff-000000000000"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{recaudacion}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="0" y="22" width="555" height="1" forecolor="#DCE1E8" uuid="dddddddd-eeee-ffff-0000-111111111111"/>
+            </line>
+        </band>
+    </detail>
+</jasperReport>

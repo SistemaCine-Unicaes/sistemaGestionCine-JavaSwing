@@ -4,7 +4,8 @@ public class MDI extends javax.swing.JFrame {
     private BarraLateral barraLateral;
     public enum Modulo {
         CARTELERA("Cartelera"), PELICULAS("Películas"), SALAS("Salas"), FUNCIONES("Programar función"),
-        TAQUILLA("Venta de boletos"), CORTE_CAJA("Corte de caja"), CONFIGURACION("Configuración"), USUARIOS("Usuarios");
+        TAQUILLA("Venta de boletos"), CORTE_CAJA("Corte de caja"), CONFIGURACION("Configuración"), 
+        USUARIOS("Usuarios"), REPORTE_SALAS("Reporte de Salas");
 
         private final String titulo;
         Modulo(String titulo) { this.titulo = titulo; }
@@ -137,6 +138,11 @@ public class MDI extends javax.swing.JFrame {
                 UsuariosView vista = new UsuariosView();
                 mostrarVistaCentral(vista);
                 new controlllers.UsuariosController(vista);
+            }
+            case REPORTE_SALAS -> {
+                ReporteSalaView vista = new ReporteSalaView();
+                mostrarVistaCentral(vista);
+                new controlllers.ReporteSalaController(vista);
             }
         }
     }

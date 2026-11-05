@@ -12,19 +12,45 @@ import views.SalasView;
 import views.MantenimientoSalaView;
 
 public class SalasController {
+    
     private final SalasView vista;
+    
     public SalasController(SalasView vista) {
-        Sesion.exigirAdministrador(); this.vista = vista;
+        Sesion.exigirAdministrador(); 
+        this.vista = vista;
+        
         vista.alAbrir(this::abrir);
-        vista.addActualizarListener(e -> cargar()); cargar();
+        vista.addActualizarListener(e -> cargar());
+        
+        // --- NUEVO EVENTO: Abrir el reporte de salas ---
+        vista.addReporteListener(e -> {
+            views.ReporteSalaView vistaReporte = new views.ReporteSalaView();
+            new controlllers.ReporteSalaController(vistaReporte);
+            
+            javax.swing.JDialog dialog = new javax.swing.JDialog(
+                (javax.swing.JFrame) javax.swing.SwingUtilities.getWindowAncestor(vista), 
+                "Reporte de Ocupación y Recaudación", 
+                true
+            );
+            dialog.setContentPane(vistaReporte);
+            dialog.pack();
+            dialog.setLocationRelativeTo(vista);
+            dialog.setResizable(false);
+            dialog.setVisible(true);
+        });
+        
+        cargar();
     }
+    
     private void cargar() {
         Tareas.ejecutar(vista, () -> {
             Sesion.exigirAdministrador();
             try (Connection c = Conexion.getConexion()) { return new SalaDAO(c).listarSalas(); }
         }, vista::mostrarSalas);
     }
+    
     private record Detalle(Sala sala, java.util.List<models.Asiento> asientos) {}
+    
     private Detalle leer(int id) throws Exception {
         Sesion.exigirAdministrador();
         try (Connection c = Conexion.getConexion()) {
@@ -33,6 +59,7 @@ public class SalasController {
             return new Detalle(sala,new AsientoDAO(c).obtenerAsientosPorSala(id));
         }
     }
+    
     private void abrir(Sala sala) {
         Tareas.ejecutar(vista, () -> leer(sala.getIdSala()), detalle -> {
             MantenimientoSalaView modal = new MantenimientoSalaView(javax.swing.SwingUtilities.getWindowAncestor(vista));

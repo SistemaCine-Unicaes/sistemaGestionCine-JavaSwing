@@ -24,7 +24,8 @@ public class TaquillaController {
     private List<Funcion> visibles = List.of();
     private ConfiguracionDAO.Precios precios;
     private boolean cargando;
-    private record Catalogo(List<Pelicula> peliculas, List<Funcion> funciones, ConfiguracionDAO.Precios precios) {}
+    private Integer funcionInicial;
+    private record Catalogo(List<Pelicula> peliculas, List<Funcion> funciones, BigDecimal precio) {}
     private record Mapa(List<Asiento> asientos, Set<Integer> vendidos) {}
 
     public TaquillaController(MDI mdi, TaquillaView vista) {
@@ -57,11 +58,12 @@ public class TaquillaController {
             for (Pelicula p : peliculas) vista.getCbPelicula().addItem(p.getNombre() + " (#" + p.getIdPelicula() + ")");
             cargando = false;
             cargarFunciones();
-            if (precios == null || !precios.estanCompletos()) {
-                Tareas.error(vista, "El administrador debe guardar las tarifas en Administración → Configuración antes de vender.");
-            } else if (peliculas.isEmpty()) {
-                JOptionPane.showMessageDialog(vista, "No hay funciones futuras disponibles. El administrador puede programarlas desde Administración.");
+            if (funcionInicial != null) {
+                seleccionarFuncionInicial(funcionInicial);
+                funcionInicial = null;
             }
+            if (precio == null) Tareas.error(vista, "El administrador debe guardar el precio en Administración → Configuración antes de vender.");
+            else if (peliculas.isEmpty()) JOptionPane.showMessageDialog(vista, "No hay funciones futuras disponibles. El administrador puede programarlas desde Administración.");
         });
     }
 
@@ -119,14 +121,14 @@ public class TaquillaController {
         int indicePelicula = vista.getCbPelicula().getSelectedIndex();
         int indiceFuncion = vista.getCbFuncion().getSelectedIndex();
         Funcion f = indiceFuncion < 0 ? null : visibles.get(indiceFuncion);
-
+        vista.mostrarPoster(indicePelicula < 0 ? null : peliculas.get(indicePelicula).getImagenUrl());
         vista.mostrarResumen(indicePelicula < 0 ? null : peliculas.get(indicePelicula).getNombre(),
                 f == null ? null : f.getFechaProyeccion().toLocalDate().format(CorteCajaController.FECHA),
                 f == null ? null : hora(f), f == null ? null : "Sala " + f.getIdSala(),
-                desgloseBoletos, desglosePrecios);
+                cantidad, precio == null ? null : "$" + precio.toPlainString());
+        vista.habilitarContinuar(precio != null && f != null);
 
-        vista.habilitarContinuar(precios != null && precios.estanCompletos() && f != null && totalBoletos > 0);
-
+        // LÓGICA AGREGADA PARA MOSTRAR DISPONIBILIDAD DE ASIENTOS
         if (f != null) {
             vista.setDisponibilidad("Calculando...");
             Tareas.ejecutar(vista, () -> {

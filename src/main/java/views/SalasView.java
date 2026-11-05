@@ -13,6 +13,8 @@ public class SalasView extends JPanel {
     private final JPanel tarjetas = new JPanel(new RejillaAdaptable(3, 260, 16));
     private final JLabel cantidad = Tema.texto("Cargando salas…", Tema.CUERPO, Tema.SECUNDARIO);
     private final JButton actualizar = Tema.botonSecundario("Actualizar salas");
+    private final JButton btnReporte = Tema.botonPrimario("Ver Reporte de Salas");
+    
     private Consumer<Sala> abrir = sala -> {};
 
     public SalasView() {
@@ -23,7 +25,16 @@ public class SalasView extends JPanel {
         JTextArea ayuda = new JTextArea("Abre una sala para ver su distribución y administrar el mantenimiento de la sala o de sus asientos.");
         ayuda.setLineWrap(true); ayuda.setWrapStyleWord(true); ayuda.setEditable(false);
         ayuda.setOpaque(false); ayuda.setFont(Tema.CUERPO); ayuda.setForeground(Tema.SECUNDARIO); ayuda.setRows(2);
-        cabecera.add(ayuda, BorderLayout.CENTER); cabecera.add(actualizar, BorderLayout.SOUTH);
+        cabecera.add(ayuda, BorderLayout.CENTER); 
+        
+        // Agrupación de los botones en la cabecera
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        panelBotones.setOpaque(false);
+        panelBotones.add(actualizar);
+        panelBotones.add(Box.createHorizontalStrut(16)); // Espaciado entre botones
+        panelBotones.add(btnReporte);
+        cabecera.add(panelBotones, BorderLayout.SOUTH);
+        
         pagina.add(cabecera, BorderLayout.NORTH); tarjetas.setOpaque(false);
         JPanel cuerpo = new JPanel(new BorderLayout(0, 16)); cuerpo.setOpaque(false);
         cuerpo.add(tarjetas, BorderLayout.NORTH); cuerpo.add(cantidad, BorderLayout.SOUTH);
@@ -56,6 +67,10 @@ public class SalasView extends JPanel {
         cantidad.setText(salas.isEmpty() ? "No hay salas. Instala el catálogo predefinido en la base de datos." : salas.size() + " salas registradas");
         tarjetas.revalidate(); tarjetas.repaint();
     }
+    
     public void alAbrir(Consumer<Sala> listener) { abrir = listener; }
     public void addActualizarListener(ActionListener listener) { actualizar.addActionListener(listener); }
+    
+    //Método para exponer el evento del reporte al controlador
+    public void addReporteListener(ActionListener listener) { btnReporte.addActionListener(listener); }
 }
