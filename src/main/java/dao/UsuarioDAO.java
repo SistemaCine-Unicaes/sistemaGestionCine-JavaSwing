@@ -15,7 +15,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.mindrot.jbcrypt.BCrypt;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -25,7 +27,15 @@ public class UsuarioDAO {
     
     private static final String SUPABASE_URL = config.Configuracion.valor("SUPABASE_AUTH_URL", "https://mmsfhfwdovbthxmjxvfe.supabase.co");
     private static final String SUPABASE_ANON_KEY = config.Configuracion.valor("SUPABASE_AUTH_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tc2ZoZndkb3ZidGh4bWp4dmZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Mjg4ODMsImV4cCI6MjEwNDMwNDg4M30.gEv3A0ZjPphdf7Mzk5hf9_0VcH_ZhC190d4lY7Tf-0M");
-    
+    // La contraseña nunca se lee en el listado; el rol y el género se devuelven como texto aunque sean enumeraciones.
+    private static final String COLUMNAS = "id_usuario,rol::text AS rol,nombre,username,dui,email,telefono,fecha_nacimiento,"
+            + "genero::text AS genero,direccion,fecha_contratacion,imagen_url,estado::text AS estado";
+
+    // El login abre su propia conexión; la gestión de usuarios recibe la conexión de la transacción.
+    private final Connection conexion;
+    public UsuarioDAO() { this(null); }
+    public UsuarioDAO(Connection conexion) { this.conexion = conexion; }
+
     public Usuario autenticarUsuario(String username, String password) {
         validarProyecto();
         Usuario usuarioTemp = null;
@@ -99,10 +109,68 @@ public class UsuarioDAO {
     }
 
     private boolean validarCredenciales(String email, String password) {
-        return enviarAuth("/auth/v1/token?grant_type=password", email, password);
+        HttpResponse<String> response = enviarAuth("/auth/v1/token?grant_type=password", email, password);
+        return interpretarInicio(response.statusCode(), response.body());
     }
 
-    private boolean enviarAuth(String endpoint, String email, String password) {
+    static boolean interpretarInicio(int estado, String cuerpo) {
+        if (estado == 200 || estado == 201) return true;
+        if (estado == 400 || estado == 422) {
+            if (cuerpo != null && cuerpo.contains("email_not_confirmed")) {
+                throw new IllegalStateException("Tu correo aún no está confirmado. Abre el enlace que Supabase envió a tu correo y vuelve a intentar.");
+            }
+            return false;
+        }
+        throw errorAuth(estado);
+    }
+
+    /**
+     * Crea la cuenta en Supabase Auth con la clave pública.
+     * @return true si Supabase exige confirmar el correo antes del primer inicio de sesión.
+     */
+    public boolean registrarEnAuth(String email, String password) {
+        HttpResponse<String> response = enviarAuth("/auth/v1/signup", email, password);
+        return interpretarRegistro(response.statusCode(), response.body());
+    }
+
+    static boolean interpretarRegistro(int estado, String respuesta) {
+        String cuerpo = respuesta == null ? "" : respuesta;
+        if (estado == 200 || estado == 201) {
+            // Con la confirmación activa, Supabase responde 200 sin identidades cuando el correo ya tenía cuenta.
+            if (cuerpo.matches("(?s).*\"identities\"\\s*:\\s*\\[\\s*\\].*")) throw correoRegistrado();
+            return !cuerpo.contains("\"access_token\"");
+        }
+        if (estado == 429) {
+            throw new IllegalStateException("Supabase alcanzó su límite de registros o correos. Espera unos minutos e intenta nuevamente.");
+        }
+        if (estado == 400 || estado == 422) {
+            if (cuerpo.contains("user_already_exists") || cuerpo.contains("already registered")) throw correoRegistrado();
+            if (cuerpo.contains("weak_password")) {
+                throw new IllegalArgumentException("Supabase rechazó la contraseña por ser débil. Usa una más larga, con letras y números.");
+            }
+            if (cuerpo.contains("signup_disabled")) {
+                throw new IllegalStateException("El registro de cuentas está deshabilitado en Supabase Auth.");
+            }
+            if (cuerpo.contains("email_address_invalid") || cuerpo.contains("email_address_not_authorized")) {
+                throw new IllegalArgumentException("Supabase rechazó el correo. Usa una dirección de correo válida.");
+            }
+            throw new IllegalArgumentException("Supabase Auth rechazó el registro. Revisa el correo y la contraseña.");
+        }
+        throw errorAuth(estado);
+    }
+
+    private static IllegalArgumentException correoRegistrado() {
+        return new IllegalArgumentException("El correo ya tiene una cuenta en Supabase Auth. Usa otro correo.");
+    }
+
+    private static IllegalStateException errorAuth(int estado) {
+        if (estado == 401 || estado == 403) {
+            return new IllegalStateException("Supabase rechazó el acceso. Revisa la clave pública y la configuración de Auth.");
+        }
+        return new IllegalStateException("Supabase Auth no está disponible. Intenta nuevamente más tarde.");
+    }
+
+    private HttpResponse<String> enviarAuth(String endpoint, String email, String password) {
         validarProyecto();
         try {
             String json = "{\"email\":" + utils.Json.texto(email) + ",\"password\":" + utils.Json.texto(password) + "}";
@@ -111,13 +179,7 @@ public class UsuarioDAO {
                     .timeout(java.time.Duration.ofSeconds(20))
                     .header("apikey", SUPABASE_ANON_KEY).header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json)).build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() == 200 || response.statusCode() == 201) return true;
-            if (response.statusCode() == 400 || response.statusCode() == 422) return false;
-            if (response.statusCode() == 401 || response.statusCode() == 403) {
-                throw new IllegalStateException("Supabase rechazó el acceso. Revisa la clave pública y la configuración de Auth.");
-            }
-            throw new IllegalStateException("Supabase Auth no está disponible. Intenta nuevamente más tarde.");
+            return client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("La autenticación fue interrumpida.", e);
@@ -125,48 +187,104 @@ public class UsuarioDAO {
             throw new IllegalStateException("No se pudo conectar con Supabase Auth. Comprueba la conexión.", e);
         }
     }
-    public boolean registrarUsuario(Usuario usuario, String passwordHash) {
-        
-        boolean authExitoso = crearUsuarioEnSupabaseAuth(usuario.getEmail(), passwordHash);
-        
-        if (!authExitoso) {
-            System.out.println("Error: No se pudo registrar el usuario en Supabase Auth.");
-            return false;
-        }
 
-        String hash = BCrypt.hashpw(passwordHash, BCrypt.gensalt(12));
-        
-        String sql = "INSERT INTO Usuario (rol, nombre, username, password_hash, dui, email, telefono, fecha_nacimiento, genero, direccion, fecha_contratacion, imagen_url, estado) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::estado_usuario)";
-                        
-        try (Connection conn = Conexion.getConexion();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, usuario.getRol());
-            ps.setString(2, usuario.getNombre());
-            ps.setString(3, usuario.getUsername());
-            ps.setString(4, hash);
-            ps.setString(5, usuario.getDui());
-            ps.setString(6, usuario.getEmail());
-            ps.setString(7, usuario.getTelefono());
-            ps.setDate(8, usuario.getFechaNacimiento());
-            ps.setString(9, usuario.getGenero());
-            ps.setString(10, usuario.getDireccion());
-            ps.setDate(11, usuario.getFechaContratacion());
-            ps.setString(12, usuario.getImagenUrl());
-            ps.setString(13, usuario.getEstado());
-            
-            int filas = ps.executeUpdate();
-            return filas > 0;
-            
-        } catch (SQLException e) {
-            System.err.println("ERROR: Falla al insertar el usuario en la tabla pública.");
-            System.err.println("Detalle: " + e.getMessage());
-            return false;
-        }
+    public List<Usuario> listar() {
+        List<Usuario> lista = new ArrayList<>();
+        try (PreparedStatement ps = conexion.prepareStatement("SELECT " + COLUMNAS + " FROM Usuario ORDER BY nombre,id_usuario");
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) lista.add(mapear(rs));
+            return lista;
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
     }
 
-    private boolean crearUsuarioEnSupabaseAuth(String email, String password) {
-        return enviarAuth("/auth/v1/signup", email, password);
+    /** Bloquea la fila hasta terminar la transacción. */
+    public Usuario bloquear(int id) {
+        try (PreparedStatement ps = conexion.prepareStatement("SELECT " + COLUMNAS + " FROM Usuario WHERE id_usuario=? FOR UPDATE")) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next() ? mapear(rs) : null; }
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
+    }
+
+    static Usuario mapear(ResultSet rs) throws SQLException {
+        return new Usuario(rs.getInt("id_usuario"), rs.getString("rol"), rs.getString("nombre"), rs.getString("username"), null,
+                rs.getString("dui"), rs.getString("email"), rs.getString("telefono"), rs.getDate("fecha_nacimiento"),
+                rs.getString("genero"), rs.getString("direccion"), rs.getDate("fecha_contratacion"),
+                rs.getString("imagen_url"), rs.getString("estado"));
+    }
+
+    /** @return "username", "email" o "dui" si otro usuario ya lo usa; null si no hay coincidencias. */
+    public String campoDuplicado(Usuario u) {
+        String sql = "SELECT COALESCE(bool_or(lower(username)=lower(?)),false),COALESCE(bool_or(lower(email)=lower(?)),false),"
+                + "COALESCE(bool_or(dui=?),false) FROM Usuario WHERE id_usuario<>?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setString(1, u.getUsername()); ps.setString(2, u.getEmail());
+            ps.setString(3, u.getDui()); ps.setInt(4, u.getIdUsuario());
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getBoolean(1) ? "username" : rs.getBoolean(2) ? "email" : rs.getBoolean(3) ? "dui" : null;
+            }
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
+    }
+
+    public int insertar(Usuario u, String passwordHash) {
+        String sql = "INSERT INTO Usuario(rol,nombre,username,password_hash,dui,email,telefono,fecha_nacimiento,genero,direccion,"
+                + "fecha_contratacion,imagen_url,estado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?::estado_usuario) RETURNING id_usuario";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            // Types.OTHER deja que PostgreSQL convierta el valor al tipo de la columna (texto o enumeración).
+            ps.setObject(1, u.getRol(), Types.OTHER); ps.setString(2, u.getNombre());
+            ps.setString(3, u.getUsername()); ps.setString(4, passwordHash);
+            ps.setString(5, u.getDui()); ps.setString(6, u.getEmail()); ps.setString(7, u.getTelefono());
+            ps.setDate(8, u.getFechaNacimiento()); ps.setObject(9, u.getGenero(), Types.OTHER);
+            ps.setString(10, u.getDireccion()); ps.setDate(11, u.getFechaContratacion());
+            ps.setString(12, u.getImagenUrl()); ps.setString(13, u.getEstado());
+            try (ResultSet rs = ps.executeQuery()) { rs.next(); return rs.getInt(1); }
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
+    }
+
+    /** El correo y la contraseña pertenecen a Supabase Auth; aquí no se modifican. */
+    public boolean actualizar(Usuario u) {
+        String sql = "UPDATE Usuario SET rol=?,nombre=?,username=?,dui=?,telefono=?,fecha_nacimiento=?,genero=?,direccion=?,"
+                + "fecha_contratacion=?,estado=?::estado_usuario WHERE id_usuario=?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setObject(1, u.getRol(), Types.OTHER); ps.setString(2, u.getNombre()); ps.setString(3, u.getUsername());
+            ps.setString(4, u.getDui()); ps.setString(5, u.getTelefono()); ps.setDate(6, u.getFechaNacimiento());
+            ps.setObject(7, u.getGenero(), Types.OTHER); ps.setString(8, u.getDireccion());
+            ps.setDate(9, u.getFechaContratacion()); ps.setString(10, u.getEstado()); ps.setInt(11, u.getIdUsuario());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
+    }
+
+    public boolean eliminar(int id) {
+        try (PreparedStatement ps = conexion.prepareStatement("DELETE FROM Usuario WHERE id_usuario=?")) {
+            ps.setInt(1, id); return ps.executeUpdate() == 1;
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
+    }
+
+    public int contarAdministradoresActivos(int excluido) {
+        String sql = "SELECT count(*) FROM Usuario WHERE lower(rol::text) IN ('admin','administrador') "
+                + "AND estado::text='Activo' AND id_usuario<>?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, excluido);
+            try (ResultSet rs = ps.executeQuery()) { rs.next(); return rs.getInt(1); }
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
+    }
+
+    public boolean tieneVentas(int id) {
+        try (PreparedStatement ps = conexion.prepareStatement("SELECT EXISTS(SELECT 1 FROM Ticket WHERE id_usuario=?)")) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) { rs.next(); return rs.getBoolean(1); }
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
+    }
+
+    /** Valores de la enumeración de una columna de Usuario; vacío si la columna es de texto. */
+    public List<String> valoresPermitidos(String columna) {
+        String sql = "SELECT e.enumlabel FROM pg_attribute a JOIN pg_enum e ON e.enumtypid=a.atttypid "
+                + "WHERE a.attrelid=to_regclass('usuario') AND a.attname=? ORDER BY e.enumsortorder";
+        List<String> valores = new ArrayList<>();
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setString(1, columna);
+            try (ResultSet rs = ps.executeQuery()) { while (rs.next()) valores.add(rs.getString(1)); }
+            return valores;
+        } catch (SQLException e) { throw new AccesoDatosException(e); }
     }
 }

@@ -37,13 +37,15 @@ public class PeliculaDAO {
                 rs.getDate("fecha_estreno"), rs.getString("tipo_estreno"), rs.getString("imagen_url"), rs.getString("estado"));
     }
 
-    // Conserva los campos de estreno e imagen que no expone el formulario.
+    // La ficha permite editar también el estreno y el póster.
     public boolean actualizarPelicula(Pelicula p) {
-        String sql = "UPDATE Pelicula SET nombre=?,sinopsis=?,duracion=?,genero=?,director=?,estado=?::estado_pelicula WHERE id_pelicula=?";
+        String sql = "UPDATE Pelicula SET nombre=?,sinopsis=?,duracion=?,genero=?,director=?,estado=?::estado_pelicula,"
+                + "fecha_estreno=?,tipo_estreno=?,imagen_url=? WHERE id_pelicula=?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setString(1, p.getNombre()); ps.setString(2, p.getSinopsis()); ps.setInt(3, p.getDuracion());
             ps.setString(4, p.getGenero()); ps.setString(5, p.getDirector());
-            ps.setString(6, p.getEstado()); ps.setInt(7, p.getIdPelicula());
+            ps.setString(6, p.getEstado()); ps.setDate(7, p.getFechaEstreno());
+            ps.setString(8, p.getTipoEstreno()); ps.setString(9, p.getImagenUrl()); ps.setInt(10, p.getIdPelicula());
             return ps.executeUpdate() == 1;
         } catch (SQLException e) { throw new AccesoDatosException(e); }
     }

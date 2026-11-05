@@ -17,10 +17,14 @@ public class DashboardController {
         System.arraycopy(adicionales, 0, administracion, 3, adicionales.length);
     }
 
+    /** Los accesos administrativos se ocultan a los cajeros, además de deshabilitarse. */
     public void aplicarPermisosPorRol() {
-        for (AbstractButton boton : administracion) boton.setEnabled(Sesion.esAdministrador());
+        boolean administrador = Sesion.esAdministrador();
+        for (AbstractButton boton : administracion) {
+            boton.setEnabled(administrador);
+            boton.setVisible(administrador);
+        }
         var usuario = Sesion.getUsuarioActual();
-        taquilla.setEnabled(usuario != null && (Sesion.esAdministrador()
-                || "Cajero".equalsIgnoreCase(usuario.getRol())));
+        taquilla.setEnabled(administrador || Sesion.esCajero(usuario));
     }
 }

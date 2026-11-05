@@ -34,8 +34,20 @@ public class SalaDAO {
     }
 
     static Sala mapear(ResultSet rs) throws SQLException {
-        return new Sala(rs.getInt("id_sala"), rs.getInt("capacidad_total"), rs.getInt("asientos_especiales"),
+        Sala sala = new Sala(rs.getInt("id_sala"), rs.getInt("capacidad_total"), rs.getInt("asientos_especiales"),
                 rs.getInt("tiempo_de_limpieza"), rs.getInt("asientos_por_fila"), rs.getString("estado"));
+        // Permite abrir bases antiguas mientras se instala la migración de salas.
+        if (tieneColumna(rs, "codigo_plano")) {
+            sala.setNombre(rs.getString("nombre")); sala.setCodigoPlano(rs.getString("codigo_plano"));
+            sala.setMotivoInactividad(rs.getString("motivo_inactividad"));
+        }
+        return sala;
+    }
+
+    static boolean tieneColumna(ResultSet rs, String columna) throws SQLException {
+        for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++)
+            if (columna.equalsIgnoreCase(rs.getMetaData().getColumnLabel(i))) return true;
+        return false;
     }
 
     public Sala obtenerSalaPorId(int id) { return obtener(id, false); }
