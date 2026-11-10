@@ -13,6 +13,7 @@ import models.Usuario;
 public class Sesion {
     // Variable estática que almacena al usuario que inició sesión
     private static volatile Usuario usuarioActual = null;
+    private static volatile models.Caja cajaActual = null;
 
     // Constructor privado para evitar que alguien use "new Sesion()" por error
     private Sesion() {
@@ -28,9 +29,27 @@ public class Sesion {
         return usuarioActual;
     }
 
+    public static void setCajaActual(models.Caja caja) {
+        cajaActual = caja;
+    }
+
+    public static models.Caja getCajaActual() {
+        return cajaActual;
+    }
+
+    public static int getIdCajaActual() {
+        return cajaActual != null ? cajaActual.getIdCaja() : 1;
+    }
+
     // Método para limpiar la sesión cuando se hace Logout
     public static void cerrarSesion() {
+        if (cajaActual != null && usuarioActual != null) {
+            try {
+                new dao.CajaDAO().cerrarCaja(cajaActual.getIdCaja(), usuarioActual.getIdUsuario());
+            } catch (Exception ignored) {}
+        }
         usuarioActual = null;
+        cajaActual = null;
     }
     
     // Método de utilidad para saber si hay alguien logueado

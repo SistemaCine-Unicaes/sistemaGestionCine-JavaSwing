@@ -234,14 +234,15 @@ public class ReporteFuncionView extends JPanel{
             );
 
         } catch (SQLException | RuntimeException ex) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "No se pudieron consultar las funciones:\n"
-                    + ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            if (isShowing()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "No se pudieron consultar las funciones:\n"
+                        + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
         }
     }
 

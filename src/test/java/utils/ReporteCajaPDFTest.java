@@ -53,9 +53,12 @@ class ReporteCajaPDFTest {
         PdfReader lector = pdf(new ReportesDAO.Reporte(cajeros, 820, new BigDecimal("4100.00")));
         int paginas = lector.getNumberOfPages();
         assertTrue(paginas >= 2);
+        String primera = texto(lector, 1);
         String ultima = texto(lector, paginas);
+        assertTrue(primera.contains("REPORTE DE CORTE DE CAJA"), "El título aparece en la primera página");
         assertTrue(ultima.matches("(?s).*Página " + paginas + " de\\s*" + paginas + ".*"), ultima);
-        assertTrue(ultima.contains("CAJERO") && ultima.contains("REPORTE DE CORTE DE CAJA"), "Se repiten encabezados");
+        assertTrue(ultima.contains("CAJERO"), "Se repiten los encabezados de las columnas de la tabla");
+        assertFalse(ultima.contains("REPORTE DE CORTE DE CAJA"), "El encabezado del reporte solo aparece en la primera página");
         assertTrue(ultima.contains("TOTAL DEL PERÍODO"));
     }
 }

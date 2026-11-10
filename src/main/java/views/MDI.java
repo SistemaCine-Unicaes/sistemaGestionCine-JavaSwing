@@ -5,7 +5,8 @@ public class MDI extends javax.swing.JFrame {
     public enum Modulo {
         CARTELERA("Cartelera"), PELICULAS("Películas"), SALAS("Salas"), FUNCIONES("Programar función"),
         TAQUILLA("Venta de boletos"), CORTE_CAJA("Corte de caja"), CONFIGURACION("Configuración"), 
-        USUARIOS("Usuarios"), REPORTE_SALAS("Reporte de Salas");
+        USUARIOS("Usuarios"), REPORTE_SALAS("Reporte de Salas"), REPORTE_POR_CAJA("Reporte por caja"),
+        CAJAS("Cajas");
 
         private final String titulo;
         Modulo(String titulo) { this.titulo = titulo; }
@@ -19,6 +20,12 @@ public class MDI extends javax.swing.JFrame {
         initComponents();
         configurarEstilos();
         configurarNavegacion();
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                config.Sesion.cerrarSesion();
+            }
+        });
         setMinimumSize(new java.awt.Dimension(480, 360));
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
     }
@@ -40,18 +47,22 @@ public class MDI extends javax.swing.JFrame {
         barra.add(menu);
         javax.swing.JMenu administracion = new javax.swing.JMenu("Administración");
         javax.swing.JMenuItem funciones = new javax.swing.JMenuItem("Programar función");
+        javax.swing.JMenuItem menuCajas = new javax.swing.JMenuItem("Cajas");
         javax.swing.JMenuItem corte = new javax.swing.JMenuItem("Corte de caja");
+        javax.swing.JMenuItem reporteCajas = new javax.swing.JMenuItem("Reporte por caja");
         javax.swing.JMenuItem configuracion = new javax.swing.JMenuItem("Configuración");
         javax.swing.JMenuItem usuarios = new javax.swing.JMenuItem("Usuarios");
         funciones.addActionListener(e -> navegar(Modulo.FUNCIONES));
+        menuCajas.addActionListener(e -> navegar(Modulo.CAJAS));
         corte.addActionListener(e -> navegar(Modulo.CORTE_CAJA));
+        reporteCajas.addActionListener(e -> navegar(Modulo.REPORTE_POR_CAJA));
         configuracion.addActionListener(e -> navegar(Modulo.CONFIGURACION));
         usuarios.addActionListener(e -> navegar(Modulo.USUARIOS));
-        administracion.add(funciones); administracion.add(corte); administracion.add(configuracion); administracion.add(usuarios);
+        administracion.add(funciones); administracion.add(menuCajas); administracion.add(corte); administracion.add(reporteCajas); administracion.add(configuracion); administracion.add(usuarios);
         barra.add(administracion, 0); setJMenuBar(barra);
         barra.setBackground(views.estilos.Tema.SUPERFICIE);
         barra.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, views.estilos.Tema.BORDE));
-        for (javax.swing.JMenuItem item : java.util.List.of(administracion, funciones, corte, configuracion, usuarios)) {
+        for (javax.swing.JMenuItem item : java.util.List.of(administracion, funciones, menuCajas, corte, reporteCajas, configuracion, usuarios)) {
             item.setFont(views.estilos.Tema.CUERPO); item.setForeground(views.estilos.Tema.TEXTO);
             item.setBackground(views.estilos.Tema.SUPERFICIE);
         }
@@ -81,6 +92,9 @@ public class MDI extends javax.swing.JFrame {
         botones.put(Modulo.SALAS, btnMenuSalas); botones.put(Modulo.FUNCIONES, btnMenuFunciones);
         botones.put(Modulo.TAQUILLA, btnVenderTickets); botones.put(Modulo.CORTE_CAJA, btnCorteCaja);
         botones.put(Modulo.CONFIGURACION, btnConfiguracion); botones.put(Modulo.USUARIOS, btnUsuarios);
+        javax.swing.JButton btnMenuCajas = new javax.swing.JButton("Cajas");
+        btnMenuCajas.addActionListener(e -> navegar(Modulo.CAJAS));
+        botones.put(Modulo.CAJAS, btnMenuCajas);
         getContentPane().remove(jPanel1);
         barraLateral = new BarraLateral(botones, btnCerrarSesion, config.Sesion.exigirSesion());
         getContentPane().add(barraLateral, java.awt.BorderLayout.LINE_START);
@@ -143,6 +157,16 @@ public class MDI extends javax.swing.JFrame {
                 ReporteSalaView vista = new ReporteSalaView();
                 mostrarVistaCentral(vista);
                 new controlllers.ReporteSalaController(vista);
+            }
+            case REPORTE_POR_CAJA -> {
+                ReportePorCajaView vista = new ReportePorCajaView();
+                mostrarVistaCentral(vista);
+                new controlllers.ReportePorCajaController(vista);
+            }
+            case CAJAS -> {
+                CajasView vista = new CajasView();
+                mostrarVistaCentral(vista);
+                new controlllers.CajasController(vista);
             }
         }
     }

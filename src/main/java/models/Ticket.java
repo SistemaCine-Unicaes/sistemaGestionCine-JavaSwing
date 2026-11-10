@@ -10,16 +10,22 @@ public class Ticket {
     private int idUsuario;
     private BigDecimal monto;
     private Timestamp fechaHoraCompra;
+    private Integer idCaja;
 
     public Ticket() {}
 
     public Ticket(int idTicket, int idFuncion, int idAsiento, int idUsuario, BigDecimal monto, Timestamp fechaHoraCompra) {
+        this(idTicket, idFuncion, idAsiento, idUsuario, monto, fechaHoraCompra, 1);
+    }
+
+    public Ticket(int idTicket, int idFuncion, int idAsiento, int idUsuario, BigDecimal monto, Timestamp fechaHoraCompra, Integer idCaja) {
         this.idTicket = idTicket;
         this.idFuncion = idFuncion;
         this.idAsiento = idAsiento;
         this.idUsuario = idUsuario;
         this.monto = monto;
         this.fechaHoraCompra = fechaHoraCompra;
+        this.idCaja = idCaja != null ? idCaja : 1;
     }
 
     public int getIdTicket() { return idTicket; }
@@ -39,4 +45,7 @@ public class Ticket {
 
     public Timestamp getFechaHoraCompra() { return fechaHoraCompra; }
     public void setFechaHoraCompra(Timestamp fechaHoraCompra) { this.fechaHoraCompra = fechaHoraCompra; }
+
+    public Integer getIdCaja() { return idCaja; }
+    public void setIdCaja(Integer idCaja) { this.idCaja = idCaja; }
 }

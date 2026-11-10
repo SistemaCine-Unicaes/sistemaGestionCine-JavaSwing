@@ -85,7 +85,7 @@ public class VentaService {
                     if (vendidos.contains(id)) throw new IllegalStateException("Uno de los asientos acaba de venderse. Cierra el mapa y vuelve a seleccionar.");
                     
                     BigDecimal montoTicket = preciosAsignados.get(i);
-                    Ticket ticket = new Ticket(0, idFuncion, id, usuario.getIdUsuario(), montoTicket, null);
+                    Ticket ticket = new Ticket(0, idFuncion, id, usuario.getIdUsuario(), montoTicket, null, Sesion.getIdCajaActual());
                     tickets.venderTicket(ticket);
                     venta.add(ticket);
                 }

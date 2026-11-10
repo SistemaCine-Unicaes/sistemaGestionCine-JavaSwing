@@ -25,7 +25,7 @@ public class TaquillaController {
     private ConfiguracionDAO.Precios precios;
     private boolean cargando;
     private Integer funcionInicial;
-    private record Catalogo(List<Pelicula> peliculas, List<Funcion> funciones, BigDecimal precio) {}
+    private record Catalogo(List<Pelicula> peliculas, List<Funcion> funciones, ConfiguracionDAO.Precios precios) {}
     private record Mapa(List<Asiento> asientos, Set<Integer> vendidos) {}
 
     public TaquillaController(MDI mdi, TaquillaView vista) {
@@ -62,8 +62,11 @@ public class TaquillaController {
                 seleccionarFuncionInicial(funcionInicial);
                 funcionInicial = null;
             }
-            if (precio == null) Tareas.error(vista, "El administrador debe guardar el precio en Administración → Configuración antes de vender.");
-            else if (peliculas.isEmpty()) JOptionPane.showMessageDialog(vista, "No hay funciones futuras disponibles. El administrador puede programarlas desde Administración.");
+            if (precios == null || !precios.estanCompletos()) {
+                Tareas.error(vista, "El administrador debe guardar las tarifas en Administración → Configuración antes de vender.");
+            } else if (peliculas.isEmpty()) {
+                JOptionPane.showMessageDialog(vista, "No hay funciones futuras disponibles. El administrador puede programarlas desde Administración.");
+            }
         });
     }
 
@@ -121,12 +124,13 @@ public class TaquillaController {
         int indicePelicula = vista.getCbPelicula().getSelectedIndex();
         int indiceFuncion = vista.getCbFuncion().getSelectedIndex();
         Funcion f = indiceFuncion < 0 ? null : visibles.get(indiceFuncion);
-        vista.mostrarPoster(indicePelicula < 0 ? null : peliculas.get(indicePelicula).getImagenUrl());
-        vista.mostrarResumen(indicePelicula < 0 ? null : peliculas.get(indicePelicula).getNombre(),
+        Pelicula peliculaSeleccionada = indicePelicula < 0 ? null : peliculas.get(indicePelicula);
+        vista.mostrarPoster(peliculaSeleccionada == null ? null : peliculaSeleccionada.getImagenUrl());
+        vista.mostrarResumen(peliculaSeleccionada == null ? null : peliculaSeleccionada.getNombre(),
                 f == null ? null : f.getFechaProyeccion().toLocalDate().format(CorteCajaController.FECHA),
                 f == null ? null : hora(f), f == null ? null : "Sala " + f.getIdSala(),
-                cantidad, precio == null ? null : "$" + precio.toPlainString());
-        vista.habilitarContinuar(precio != null && f != null);
+                desgloseBoletos, desglosePrecios);
+        vista.habilitarContinuar(precios != null && precios.estanCompletos() && f != null && totalBoletos > 0);
 
         // LÓGICA AGREGADA PARA MOSTRAR DISPONIBILIDAD DE ASIENTOS
         if (f != null) {
