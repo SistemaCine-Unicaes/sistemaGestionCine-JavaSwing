@@ -1,78 +1,344 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ReporteSala" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d">
+<jasperReport
+    xmlns="http://jasperreports.sourceforge.net/jasperreports"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+    name="ReportePorSala"
+    pageWidth="595"
+    pageHeight="842"
+    columnWidth="525"
+    leftMargin="35"
+    rightMargin="35"
+    topMargin="30"
+    bottomMargin="30"
+    whenNoDataType="AllSectionsNoDetail">
+
     <parameter name="sala_filtro" class="java.lang.String"/>
+
+    <queryString>
+        <![CDATA[
+            SELECT
+                s.id_sala,
+                'Sala ' || s.id_sala || CASE WHEN s.nombre IS NOT NULL AND s.nombre <> '' AND s.nombre <> (s.id_sala::text) THEN ' · ' || s.nombre ELSE '' END AS nombre_sala,
+                s.capacidad_total,
+                f.id_funcion,
+                COALESCE(p.nombre, 'Sin funciones programadas') AS pelicula,
+                f.fecha_proyeccion,
+                f.hora_inicio,
+                COALESCE(f.estado::text, '-') AS estado_funcion,
+                COUNT(t.id_ticket) AS boletos_vendidos,
+                COALESCE(SUM(t.monto), 0) AS recaudacion
+            FROM Sala s
+            LEFT JOIN Funcion f ON s.id_sala = f.id_sala
+            LEFT JOIN Pelicula p ON f.id_pelicula = p.id_pelicula
+            LEFT JOIN Ticket t ON f.id_funcion = t.id_funcion
+            WHERE ($P{sala_filtro} = 'Todas las salas'
+               OR s.id_sala::text = $P{sala_filtro}
+               OR s.nombre = $P{sala_filtro}
+               OR ('Sala ' || s.id_sala) = $P{sala_filtro}
+               OR ('Sala ' || s.id_sala || CASE WHEN s.nombre IS NOT NULL AND s.nombre <> '' AND s.nombre <> (s.id_sala::text) THEN ' · ' || s.nombre ELSE '' END) = $P{sala_filtro})
+            GROUP BY s.id_sala, s.nombre, s.capacidad_total, f.id_funcion, p.nombre, f.fecha_proyeccion, f.hora_inicio, f.estado
+            ORDER BY s.id_sala, f.fecha_proyeccion DESC NULLS LAST, f.hora_inicio DESC NULLS LAST, f.id_funcion NULLS LAST
+        ]]>
+    </queryString>
+
+    <field name="id_sala" class="java.lang.Integer"/>
     <field name="nombre_sala" class="java.lang.String"/>
-    <field name="boletos_vendidos" class="java.lang.Integer"/>
-    <field name="asientos_ocupados" class="java.lang.Integer"/>
-    <field name="recaudacion" class="java.lang.String"/>
+    <field name="capacidad_total" class="java.lang.Integer"/>
+    <field name="id_funcion" class="java.lang.Integer"/>
+    <field name="pelicula" class="java.lang.String"/>
+    <field name="fecha_proyeccion" class="java.sql.Date"/>
+    <field name="hora_inicio" class="java.sql.Time"/>
+    <field name="estado_funcion" class="java.lang.String"/>
+    <field name="boletos_vendidos" class="java.lang.Long"/>
+    <field name="recaudacion" class="java.math.BigDecimal"/>
+
+    <variable name="SubtotalBoletosSala" class="java.lang.Long" resetType="Group" resetGroup="GrupoSala" calculation="Sum">
+        <variableExpression><![CDATA[$F{boletos_vendidos}]]></variableExpression>
+    </variable>
+
+    <variable name="SubtotalRecaudacionSala" class="java.math.BigDecimal" resetType="Group" resetGroup="GrupoSala" calculation="Sum">
+        <variableExpression><![CDATA[$F{recaudacion}]]></variableExpression>
+    </variable>
+
+    <variable name="TotalBoletos" class="java.lang.Long" calculation="Sum">
+        <variableExpression><![CDATA[$F{boletos_vendidos}]]></variableExpression>
+    </variable>
+
+    <variable name="TotalRecaudacion" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{recaudacion}]]></variableExpression>
+    </variable>
+
+    <group name="GrupoSala">
+        <groupExpression><![CDATA[$F{id_sala}]]></groupExpression>
+        <groupHeader>
+            <band height="44">
+                <rectangle>
+                    <reportElement x="0" y="6" width="525" height="20" backcolor="#EAEDF2" mode="Opaque"/>
+                    <graphicElement><pen lineWidth="0.0"/></graphicElement>
+                </rectangle>
+                <textField>
+                    <reportElement x="8" y="7" width="340" height="18" forecolor="#182235"/>
+                    <textElement verticalAlignment="Middle">
+                        <font fontName="SansSerif" size="9.5" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA[$F{nombre_sala} + "  (Capacidad: " + $F{capacidad_total} + " butacas)"]]></textFieldExpression>
+                </textField>
+
+                <rectangle>
+                    <reportElement x="0" y="27" width="525" height="17" backcolor="#182235" mode="Opaque"/>
+                    <graphicElement><pen lineWidth="0.0"/></graphicElement>
+                </rectangle>
+                <staticText>
+                    <reportElement x="8" y="28" width="50" height="15" forecolor="#FFFFFF"/>
+                    <textElement verticalAlignment="Middle"><font fontName="SansSerif" size="7.5" isBold="true"/></textElement>
+                    <text><![CDATA[FUNCIÓN]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement x="62" y="28" width="180" height="15" forecolor="#FFFFFF"/>
+                    <textElement verticalAlignment="Middle"><font fontName="SansSerif" size="7.5" isBold="true"/></textElement>
+                    <text><![CDATA[PELÍCULA]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement x="245" y="28" width="95" height="15" forecolor="#FFFFFF"/>
+                    <textElement verticalAlignment="Middle"><font fontName="SansSerif" size="7.5" isBold="true"/></textElement>
+                    <text><![CDATA[FECHA / HORA]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement x="345" y="28" width="60" height="15" forecolor="#FFFFFF"/>
+                    <textElement verticalAlignment="Middle"><font fontName="SansSerif" size="7.5" isBold="true"/></textElement>
+                    <text><![CDATA[ESTADO]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement x="410" y="28" width="45" height="15" forecolor="#FFFFFF"/>
+                    <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="SansSerif" size="7.5" isBold="true"/></textElement>
+                    <text><![CDATA[BOLETOS]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement x="460" y="28" width="60" height="15" forecolor="#FFFFFF"/>
+                    <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="SansSerif" size="7.5" isBold="true"/></textElement>
+                    <text><![CDATA[RECAUDADO]]></text>
+                </staticText>
+            </band>
+        </groupHeader>
+        <groupFooter>
+            <band height="20">
+                <rectangle>
+                    <reportElement x="0" y="0" width="525" height="18" backcolor="#F4F5F7" mode="Opaque"/>
+                    <graphicElement><pen lineWidth="0.0"/></graphicElement>
+                </rectangle>
+                <textField>
+                    <reportElement x="8" y="2" width="300" height="14" forecolor="#586579"/>
+                    <textElement verticalAlignment="Middle">
+                        <font fontName="SansSerif" size="8" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA["Subtotal " + $F{nombre_sala} + ": " + ($V{SubtotalBoletosSala} != null ? $V{SubtotalBoletosSala} : 0) + " boletos"]]></textFieldExpression>
+                </textField>
+                <textField pattern="$ #,##0.00">
+                    <reportElement x="410" y="2" width="110" height="14" forecolor="#182235"/>
+                    <textElement textAlignment="Right" verticalAlignment="Middle">
+                        <font fontName="SansSerif" size="8.5" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA[$V{SubtotalRecaudacionSala} != null ? $V{SubtotalRecaudacionSala} : BigDecimal.ZERO]]></textFieldExpression>
+                </textField>
+                <line>
+                    <reportElement x="0" y="19" width="525" height="1" forecolor="#DCE1E8"/>
+                </line>
+            </band>
+        </groupFooter>
+    </group>
+
     <title>
-        <band height="70" splitType="Stretch">
-            <rect>
-                <reportElement x="0" y="0" width="555" height="60" backcolor="#182235" uuid="11111111-2222-3333-4444-555555555555"/>
-            </rect>
+        <band height="175">
+            <!-- Barra superior azul marino institucional -->
+            <rectangle>
+                <reportElement x="0" y="0" width="525" height="75" backcolor="#182235" mode="Opaque"/>
+            </rectangle>
+
+            <!-- Franja inferior de acento en rojo carmesí institucional -->
+            <rectangle>
+                <reportElement x="0" y="70" width="525" height="5" backcolor="#B4233C" mode="Opaque"/>
+            </rectangle>
+
             <staticText>
-                <reportElement x="20" y="15" width="300" height="30" forecolor="#FFFFFF" uuid="22222222-3333-4444-5555-666666666666"/>
+                <reportElement x="20" y="14" width="340" height="24" forecolor="#FFFFFF"/>
                 <textElement>
-                    <font size="18" isBold="true"/>
+                    <font fontName="SansSerif" size="16" isBold="true"/>
                 </textElement>
-                <text><![CDATA[Reporte de Ocupación por Sala]]></text>
+                <text><![CDATA[CINE | GESTIÓN]]></text>
             </staticText>
+
+            <staticText>
+                <reportElement x="20" y="41" width="380" height="19" forecolor="#FFFFFF"/>
+                <textElement>
+                    <font fontName="SansSerif" size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[REPORTE DE OCUPACIÓN Y FUNCIONES POR SALA]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="407" y="20" width="105" height="20" forecolor="#FFFFFF"/>
+                <textElement textAlignment="Right">
+                    <font fontName="SansSerif" size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ADMINISTRACIÓN]]></text>
+            </staticText>
+
+            <!-- Título de sección -->
+            <staticText>
+                <reportElement x="0" y="94" width="525" height="25" forecolor="#182235"/>
+                <textElement>
+                    <font fontName="SansSerif" size="14" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Resumen de ocupación, funciones y rendimiento por sala]]></text>
+            </staticText>
+
             <textField>
-                <reportElement x="350" y="20" width="185" height="20" forecolor="#FFFFFF" uuid="33333333-4444-5555-6666-777777777777"/>
-                <textElement textAlignment="Right"/>
-                <textFieldExpression><![CDATA["Filtro: " + $P{sala_filtro}]]></textFieldExpression>
+                <reportElement x="0" y="124" width="525" height="18" forecolor="#586579"/>
+                <textElement>
+                    <font fontName="SansSerif" size="9.5" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Filtro aplicado: " + ($P{sala_filtro} != null ? $P{sala_filtro} : "Todas las salas")]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="0" y="144" width="525" height="18" forecolor="#586579"/>
+                <textElement>
+                    <font fontName="SansSerif" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Fecha de emisión: " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></textFieldExpression>
             </textField>
         </band>
     </title>
+
     <columnHeader>
-        <band height="30" splitType="Stretch">
-            <rect>
-                <reportElement x="0" y="0" width="555" height="25" backcolor="#B4233C" uuid="44444444-5555-6666-7777-888888888888"/>
-            </rect>
+        <band height="25">
             <staticText>
-                <reportElement x="10" y="5" width="130" height="15" forecolor="#FFFFFF" uuid="55555555-6666-7777-8888-999999999999"/>
-                <textElement><font isBold="true"/></textElement>
-                <text><![CDATA[SALA]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="150" y="5" width="120" height="15" forecolor="#FFFFFF" uuid="66666666-7777-8888-9999-000000000000"/>
-                <textElement><font isBold="true"/></textElement>
-                <text><![CDATA[BOLETOS VENDIDOS]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="280" y="5" width="130" height="15" forecolor="#FFFFFF" uuid="77777777-8888-9999-0000-111111111111"/>
-                <textElement><font isBold="true"/></textElement>
-                <text><![CDATA[ASIENTOS OCUPADOS]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="420" y="5" width="120" height="15" forecolor="#FFFFFF" uuid="88888888-9999-0000-1111-222222222222"/>
-                <textElement textAlignment="Right"><font isBold="true"/></textElement>
-                <text><![CDATA[RECAUDACIÓN]]></text>
+                <reportElement x="0" y="0" width="525" height="20" forecolor="#182235"/>
+                <textElement>
+                    <font fontName="SansSerif" size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Detalle por sala y funciones programadas]]></text>
             </staticText>
         </band>
     </columnHeader>
+
     <detail>
-        <band height="25" splitType="Stretch">
+        <band height="18">
+            <rectangle>
+                <reportElement x="0" y="0" width="525" height="17" backcolor="#FDFDFD" mode="Opaque">
+                    <printWhenExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></printWhenExpression>
+                </reportElement>
+                <graphicElement><pen lineWidth="0.0"/></graphicElement>
+            </rectangle>
+
             <textField>
-                <reportElement x="10" y="2" width="130" height="20" uuid="99999999-0000-1111-2222-333333333333"/>
-                <textFieldExpression><![CDATA[$F{nombre_sala}]]></textFieldExpression>
+                <reportElement x="8" y="1" width="50" height="15"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{id_funcion} != null ? ("#" + $F{id_funcion}) : "-"]]></textFieldExpression>
             </textField>
+
             <textField>
-                <reportElement x="150" y="2" width="120" height="20" uuid="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"/>
+                <reportElement x="62" y="1" width="180" height="15"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{pelicula}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="245" y="1" width="95" height="15"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{fecha_proyeccion} != null ? (new java.text.SimpleDateFormat("dd/MM/yyyy").format($F{fecha_proyeccion}) + ($F{hora_inicio} != null ? " " + new java.text.SimpleDateFormat("HH:mm").format($F{hora_inicio}) : "")) : "-"]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="345" y="1" width="60" height="15"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="7.5"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{estado_funcion}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="410" y="1" width="45" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
                 <textFieldExpression><![CDATA[$F{boletos_vendidos}]]></textFieldExpression>
             </textField>
-            <textField>
-                <reportElement x="280" y="2" width="130" height="20" uuid="bbbbbbbb-cccc-dddd-eeee-ffffffffffff"/>
-                <textFieldExpression><![CDATA[$F{asientos_ocupados}]]></textFieldExpression>
-            </textField>
-            <textField>
-                <reportElement x="420" y="2" width="120" height="20" uuid="cccccccc-dddd-eeee-ffff-000000000000"/>
-                <textElement textAlignment="Right"/>
+
+            <textField pattern="$ #,##0.00">
+                <reportElement x="460" y="1" width="60" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="8" isBold="true"/>
+                </textElement>
                 <textFieldExpression><![CDATA[$F{recaudacion}]]></textFieldExpression>
             </textField>
+
             <line>
-                <reportElement x="0" y="22" width="555" height="1" forecolor="#DCE1E8" uuid="dddddddd-eeee-ffff-0000-111111111111"/>
+                <reportElement x="0" y="17" width="525" height="1" forecolor="#EEEEEE"/>
             </line>
         </band>
     </detail>
+
+    <pageFooter>
+        <band height="29">
+            <line>
+                <reportElement x="0" y="1" width="525" height="1" forecolor="#DCE1E8"/>
+            </line>
+
+            <staticText>
+                <reportElement x="0" y="10" width="380" height="15" forecolor="#586579"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <text><![CDATA[Sistema de Gestión de Cine | Administración de Salas]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="420" y="10" width="105" height="15" forecolor="#586579"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+    <summary>
+        <band height="94">
+            <rectangle>
+                <reportElement x="0" y="15" width="525" height="62" backcolor="#E8F5EC" mode="Opaque"/>
+            </rectangle>
+
+            <staticText>
+                <reportElement x="15" y="24" width="220" height="22" forecolor="#167347"/>
+                <textElement>
+                    <font fontName="SansSerif" size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[TOTAL GENERAL]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="15" y="51" width="260" height="19"/>
+                <textElement>
+                    <font fontName="SansSerif" size="10" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Boletos vendidos en total: " + ($V{TotalBoletos} != null ? $V{TotalBoletos} : 0)]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="$ #,##0.00">
+                <reportElement x="305" y="46" width="200" height="25" forecolor="#167347"/>
+                <textElement textAlignment="Right">
+                    <font fontName="SansSerif" size="14" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$V{TotalRecaudacion} != null ? $V{TotalRecaudacion} : BigDecimal.ZERO]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
 </jasperReport>

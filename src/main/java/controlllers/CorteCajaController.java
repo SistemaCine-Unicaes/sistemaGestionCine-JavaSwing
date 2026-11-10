@@ -28,6 +28,22 @@ public class CorteCajaController {
         vista.setFecha(LocalDate.now(java.time.ZoneId.of(config.Configuracion.valor("CINE_ZONA_HORARIA", "America/El_Salvador"))).format(FECHA));
         vista.addGenerarReporteListener(e -> Tareas.validar(vista, this::generar));
         vista.addExportarPdfListener(e -> Tareas.validar(vista, this::exportarPdf));
+        vista.addReportePorCajaListener(e -> {
+            if (java.awt.GraphicsEnvironment.isHeadless()) return;
+            views.ReportePorCajaView vistaReporte = new views.ReportePorCajaView();
+            new controlllers.ReportePorCajaController(vistaReporte);
+            java.awt.Window ventana = javax.swing.SwingUtilities.getWindowAncestor(vista);
+            javax.swing.JDialog dialog = new javax.swing.JDialog(
+                    ventana instanceof java.awt.Frame f ? f : null,
+                    "Reporte de Ventas y Uso por Caja",
+                    true
+            );
+            dialog.setContentPane(vistaReporte);
+            dialog.pack();
+            dialog.setSize(980, 620);
+            dialog.setLocationRelativeTo(vista);
+            dialog.setVisible(true);
+        });
         generar();
     }
 
@@ -62,8 +78,14 @@ public class CorteCajaController {
             tabla.setRowCount(0);
             List<ReportesDAO.VentaCajero> filas = reporte.cajeros().stream()
                     .sorted(Comparator.comparing(ReportesDAO.VentaCajero::total).reversed()).toList();
-            for (var fila : filas) tabla.addRow(new Object[]{fila.nombre() + " (#" + fila.idUsuario() + ")", fila.tickets(),
-                    dinero(fila.total()), total.signum() == 0 ? 0.0 : fila.total().doubleValue() * 100 / total.doubleValue()});
+            for (var fila : filas) {
+                String descCajero = fila.nombre() + " (#" + fila.idUsuario() + ")";
+                if (fila.cajas() != null && !fila.cajas().isBlank()) {
+                    descCajero += " · " + fila.cajas();
+                }
+                tabla.addRow(new Object[]{descCajero, fila.tickets(),
+                        dinero(fila.total()), total.signum() == 0 ? 0.0 : fila.total().doubleValue() * 100 / total.doubleValue()});
+            }
         });
     }
 

@@ -23,6 +23,7 @@
                 f.fecha_proyeccion,
                 f.hora_inicio,
                 f.id_sala,
+                COALESCE(s.nombre, 'Sala ' || s.id_sala) AS nombre_sala,
                 f.estado::text AS estado,
                 s.capacidad_total,
                 t.id_ticket,
@@ -60,6 +61,7 @@
     <field name="fecha_proyeccion" class="java.sql.Date"/>
     <field name="hora_inicio" class="java.sql.Time"/>
     <field name="id_sala" class="java.lang.Integer"/>
+    <field name="nombre_sala" class="java.lang.String"/>
     <field name="estado" class="java.lang.String"/>
     <field name="capacidad_total" class="java.lang.Integer"/>
     <field name="id_ticket" class="java.lang.Integer"/>
@@ -161,7 +163,7 @@
                     width="525" height="18"/>
                 <textFieldExpression><![CDATA[
                     "Función #" + $F{id_funcion}
-                    + "   |   Sala " + $F{id_sala}
+                    + "   |   Sala " + $F{id_sala} + ($F{nombre_sala} != null && !$F{nombre_sala}.isEmpty() ? " (" + $F{nombre_sala} + ")" : "")
                     + "   |   Estado: " + $F{estado}
                 ]]></textFieldExpression>
             </textField>

@@ -30,6 +30,22 @@ public class LoginController {
                     return;
                 }
                 Sesion.setUsuarioActual(usuario);
+                if (Sesion.esCajero(usuario)) {
+                    dao.CajaDAO cajaDao = new dao.CajaDAO();
+                    models.Caja activa = cajaDao.obtenerCajaActivaDeUsuario(usuario.getIdUsuario());
+                    if (activa != null) {
+                        Sesion.setCajaActual(activa);
+                    } else if (java.awt.GraphicsEnvironment.isHeadless()) {
+                        Sesion.setCajaActual(new models.Caja(1, 1, "Caja 01 - Taquilla Principal", "OCUPADA", usuario.getIdUsuario(), null));
+                    } else {
+                        views.AsignarCajaDialog dialogo = new views.AsignarCajaDialog(vista, usuario);
+                        dialogo.setVisible(true);
+                        if (!dialogo.isConfirmado() || Sesion.getCajaActual() == null) {
+                            Sesion.cerrarSesion();
+                            return;
+                        }
+                    }
+                }
                 MDI mdi = new MDI();
                 mdi.setVisible(true);
                 vista.dispose();

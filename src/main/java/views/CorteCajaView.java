@@ -297,6 +297,11 @@ public class CorteCajaView extends javax.swing.JPanel {
         btnExportarPdf.setPreferredSize(new java.awt.Dimension(170, 40));
         pnlAcciones.add(btnExportarPdf);
 
+        btnReportePorCaja = views.estilos.Tema.botonSecundario("Reporte por caja");
+        btnReportePorCaja.setToolTipText("Consultar el detalle de transacciones y cajeros por cada caja física");
+        btnReportePorCaja.setPreferredSize(new java.awt.Dimension(170, 40));
+        pnlAcciones.add(btnReportePorCaja);
+
         pnlFiltroAccion.add(pnlAcciones);
 
         pnlFiltros.add(pnlFiltroAccion);
@@ -534,6 +539,10 @@ public class CorteCajaView extends javax.swing.JPanel {
         btnExportarPdf.addActionListener(listener);
     }
 
+    public void addReportePorCajaListener(java.awt.event.ActionListener listener) {
+        btnReportePorCaja.addActionListener(listener);
+    }
+
     public void addGenerarReporteListener(java.awt.event.ActionListener listener) {
         btnGenerarReporte.addActionListener(listener);
         txtFecha.addActionListener(listener);
@@ -575,6 +584,7 @@ public class CorteCajaView extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnExportarPdf;
+    private javax.swing.JButton btnReportePorCaja;
     private javax.swing.JButton btnGenerarReporte;
     private javax.swing.ButtonGroup grpTipo;
     private javax.swing.JLabel lblCajeros;
